@@ -456,7 +456,130 @@ q或Q 退出
 	 
 ---------------------------------------------------------------------
 
+文件处理命令 ： ln
 
+命令名称：ln
+
+命令英文原意：link
+
+命令所在路径：/bin/ln
+
+执行权限：所有用户
+
+语法：ln -s [原文件] [目标文件]
+
+-s 创建软链接
+
+功能描述：生成链接文件
+
+范例：
+
+[root@localhost tmp]# ln -s /etc/issue /tmp/issue.soft
+
+创建文件/etc/issue的软链接/tmp/issue.soft
+
+[root@localhost tmp]# ln /etc/issue /tmp/issue.hard
+
+创建文件/etc/issue的硬链接/tmp/issue.hard
+	
+	软链接：
+	[root@localhost tmp]# ls -lh /tmp/issue.soft 
+	lrwxrwxrwx. 1 root root 10 10月 29 00:39 /tmp/issue.soft -> /etc/issue
+	原文件：
+	[root@localhost tmp]# ls -lh /etc/issue
+    -rw-r--r--. 2 root root 47 6月  26 2012 /etc/issue
+	硬链接：
+	[root@localhost tmp]# ls -lh /tmp/issue.hard
+    -rw-r--r--. 2 root root 47 6月  26 2012 /tmp/issue.hard
+	
+
+
+软链接特征：类似Windows快捷方式
+
+1、lrwxrwxrwx l 软链接
+
+软链接文件权限都为rwxrwxrwx
+
+2、文件大小-只是符号链接
+
+3、/tmp/issue.soft -> /etc/issue
+
+箭头指向原文件
+
+硬链接特征：
+
+1、拷贝cp -p + 同步更新
+
+echo "this is a test" >> /etc/motd
+	
+	例：
+	在issue文件添加"www.jiansong.net"
+	
+	[root@localhost ~]# echo "www.jiansong.net">> /etc/issue
+    [root@localhost ~]# cat /etc/issue
+    CentOS release 6.3 (Final)
+    Kernel \r on an \m
+
+    www.jiansong.net
+	
+	查看硬链接内容：
+    [root@localhost ~]# cd /tmp/
+    [root@localhost tmp]# cat /tmp/issue.hard
+    CentOS release 6.3 (Final)
+    Kernel \r on an \m
+
+    www.jiansong.net
+	
+	备份etc/issue 文件为/tmp/issue.bak,之后删除etc/issue文件
+    [root@localhost tmp]# cp /etc/issue /tmp/issue.bak
+    [root@localhost tmp]# rm /etc/issue
+	
+    rm：是否删除普通文件 "/etc/issue"？y
+	
+	查看软连接文件：
+	
+    [root@localhost tmp]# cat /tmp/issue.soft 
+    cat: /tmp/issue.soft: 没有那个文件或目录
+	
+	查看硬链接文件，发现内容还在：
+    [root@localhost tmp]# cat /tmp/issue.hard
+    CentOS release 6.3 (Final)
+    Kernel \r on an \m
+
+    www.jiansong.net
+	
+	
+2、可通过i节点识别
+
+	例：
+	[root@localhost tmp]# ln issue.bak issue.bak.hard
+    [root@localhost tmp]# ln -s issue.bak issue.bak.sof
+    [root@localhost tmp]# ls -i issue.bak issue.bak.sof issue.bak.hard
+    393276 issue.bak  393276 issue.bak.hard  393279 issue.bak.sof
+	
+	会发现硬链接和原文件i节点相同，而软链接则不一样。
+	
+
+3、不能跨分区
+	
+	例：
+	[root@localhost tmp]# ln /tmp/issue.bak /boot/issue.bak.hard
+    ln: 创建硬链接"/boot/issue.bak.hard" => "/tmp/issue.bak": 无效的跨设备连接
+	
+	软链接可以跨分区
+	[root@localhost tmp]# ln -s /tmp/issue.bak /boot/issue.bak.soft
+	
+4、不能针对目录使用
+    
+	例：
+	
+	[root@localhost ~]# ln /tmp /root/tmp.hard
+    ln: "/tmp": 不允许将硬链接指向目录
+	
+	软链接可以针对目录使用
+	[root@localhost ~]# ln -s /tmp /root/tmp.soft
+
+----------------------------------------------------------------------------------
 
 
 
