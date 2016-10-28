@@ -104,3 +104,178 @@ ls -l  :
 [root@localhost ~]# ls -i   ： 查询i节点
 
 [root@localhost ~]# ls -a   : 查看隐藏文件
+
+------------------------------------------------------------------------
+
+目录处理命令：
+
+命令名称： mkdir
+
+命令英文原意：make directories
+
+命令所在路径： /bin/mkdir
+
+执行权限： 所有用户
+
+语法： mkdir -p [目录名]
+
+功能描述： 创建新目录
+			-p 递归创建
+	范例： $ mkdir -p /tmp/Japan/boduo
+		   $ mkdir /tmp/Japan/longze/tmp/Japan/cangjing
+		   
+---------------------------------------------------------------------------
+	
+命令名称： cd
+
+命令英文原意：change directory
+
+命令所在路径：shell内置命令
+
+执行权限： 所有用户
+
+语法： cd [目录]
+
+功能描述: 切换目录
+
+范例： $cd /tmp/Japan/boduo 切换到指定目录
+	   $cd .. 回到上一级目录
+	   
+----------------------------------------------------------------------
+	   
+目录处理命令：pwd
+
+英文原意： print working directory
+
+命令所在路径： /bin/pwd
+
+执行权限： 所有用户
+
+语法： pwd
+
+功能描述： 显示当前目录
+
+范例： $pwd
+       /tmp/Japan
+	   
+----------------------------------------------------------------
+	   
+文件处理命令： rmdir
+
+命令名称： rmdir
+
+命令英文原意：remove empty directories
+
+所在路径： /bin/rmdir
+
+执行权限： 所有用户
+
+语法： rmdir [目录名]
+
+功能描述： 删除空目录
+
+范例： $rmdir/tmp/Japan/boduo
+
+-----------------------------------------------------
+
+目录处理命令： cp
+
+命令名称： cp
+
+命令英文原意： copy
+
+命令所在路径： /bin/cp
+
+执行权限： 所有用户
+
+语法： cp -rp [原文件或目录][目标目录]
+          -r   复制目录
+		  -p  保留文件属性
+
+功能描述： 复制文件或目录
+
+范例： $cp -r/tmp/Japan/cangjing /root
+
+       将目录/tmp/Japan/cangjing复制到目录/root下
+	  
+	  $ cp -rp /tmp/Japan/boduo /tmp/Japan/longze /root
+	  
+      将/tmp/Japan目录下的boduo和longze目录复制到
+      /root下，保持目录属性
+	  
+	  [root@localhost Japan]# cp -p /root/install.log /tmp
+      cp：是否覆盖"/tmp/install.log"？ y
+	  
+      [root@localhost Japan]# ls -lh /root/install.log
+	  
+      -rw-r--r--. 1 root root 26K 10月 27 20:29 /root/install.log
+	  
+      [root@localhost Japan]# ls -lh /tmp/install.log
+	  
+      -rw-r--r--. 1 root root 26K 10月 27 20:29 /tmp/install.log
+	  
+	  两者的时间属性没有改变
+	  
+	  [root@localhost Japan]# cp -r /tmp/Japan/longze /root/lihua100+
+	  将longze复制到root下并改名为lihua100+
+	  
+----------------------------------------------------------------------
+	
+目录处理命令 ： mv
+
+命令名称：mv
+
+命令英文原意：move
+
+命令所在路径：/bin/mv
+
+执行权限：所有用户
+
+语法：mv [原文件或目录] [目标目录]
+
+功能描述：剪切文件、改名
+		
+		[root@localhost Japan]# mv /tmp/Japan/cangjing /root
+		把cangjing剪切到root下
+		
+		[root@localhost Japan]# mv /tmp/Japan/longze/ /root/nvshen
+		把longze剪切到root下并改名为nvshen
+		
+		[root@localhost ~]# mv cangjing canglaoshi
+		在同一个目录文件下进行改名
+		
+
+----------------------------------------------------------
+
+目录处理命令 ： rm
+
+命令名称：rm
+
+命令英文原意：remove
+
+命令所在路径：/bin/rm
+
+执行权限：所有用户
+
+语法：rm -rf [文件或目录]
+
+         -r 删除目录
+		 -f 强制执行
+		 
+功能描述：删除文件
+
+范例：
+
+$ rm /tmp/yum.log
+删除文件/tmp/yum.log
+
+$ rm -rf /tmp/Japan/longze
+删除目录/tmp/Japan/longze
+
+ctrl + L : 清屏操作
+
+ctrl + C : 终止操作
+-------------------------------------------------------------
+
+
+
