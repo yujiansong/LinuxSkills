@@ -674,5 +674,137 @@ $ chmod -R 777 testdir
 passwd： 所有的身份验证令牌已经成功更新。
 
 
+------------------------------------------------------------------------------
+
+权限管理命令 ： chown
+
+命令名称：chown
+
+命令英文原意：change file ownership
+
+命令所在路径：/bin/chown
+
+执行权限：所有用户
+
+语法：chown [用户] [文件或目录]
+
+功能描述：改变文件或目录的所有者
+
+范例：
+
+改变文件fengjie的所有者为jiansong
+
+1).创建一个fengjie的目录
+[root@localhost tmp]# touch fengjie
+
+2).查看文件所有者
+[root@localhost tmp]# ls -ld fengjie
+-rw-r--r--. 1 root root 0 10月 29 21:20 fengjie
+
+3).创建一个用户 jiansong
+[root@localhost tmp]# useradd jiansong
+
+4).改变文件的所有者为jiansong
+[root@localhost tmp]# chown jiansong fengjie
+
+5).再次查看文件所有者
+[root@localhost tmp]# ls -ld fengjie
+-rw-r--r--. 1 jiansong root 0 10月 29 21:20 fengjie
+
+--------------------------------------------------------------------------------
+
+权限管理命令 ： chgrp
+
+命令名称：chgrp
+
+命令英文原意：change file group ownership
+
+命令所在路径：/bin/chgrp
+
+执行权限：所有用户
+
+语法：chgrp [用户组] [文件或目录]
+
+功能描述：改变文件或目录的所属组
+
+范例：
+
+改变文件fengjie的所属组为wanglaoer
+
+1).查看fengjie文件属性
+[root@localhost tmp]# ls -ld fengjie 
+-rw-r--r--. 1 jiansong root 0 10月 29 21:20 fengjie
+
+2).创建一个所属组为wanglaoer
+[root@localhost tmp]# groupadd wanglaoer
+
+3).改变文件fengjie的所属组为wanglaoer
+[root@localhost tmp]# chgrp wanglaoer fengjie
+
+4).再次查看文件所属组
+[root@localhost tmp]# ls -ld fengjie 
+-rw-r--r--. 1 jiansong wanglaoer 0 10月 29 21:20 fengjie
+
+------------------------------------------------------------------------------
+
+权限管理命令 ： umask
+
+命令名称：umask
+
+命令英文原意：the user file-creation mask
+
+命令所在路径：Shell内置命令
+
+执行权限：所有用户
+
+语法：umask [-S]
+
+-S 以rwx形式显示新建文件缺省权限
+
+功能描述：显示、设置文件的缺省权限
+
+范例： 
+
+显示默认的权限
+[root@localhost tmp]# umask -S
+u=rwx,g=rx,o=rx
+
+1).创建一个lamp目录
+[root@localhost tmp]# mkdir lamp
+
+2).查看lamp目录的权限，发现和默认的相同
+[root@localhost tmp]# ls -ld lamp/
+drwxr-xr-x. 2 root root 4096 10月 29 21:42 lamp/
+
+3).创建一个wangtianshe文件，查询权限少了一个可执行权限x
+[root@localhost tmp]# touch wangtianshe
+[root@localhost tmp]# ls -ld wangtianshe 
+-rw-r--r--. 1 root root 0 10月 29 21:43 wangtianshe
+
+
+[root@localhost tmp]# umask
+0022   
+
+权限为:  ----w--w-
+		777 - 022 = 755     rwxr-xr-x
+		
+1).如果想改默认权限为 rwxr-xr--   754
+                   777 - 754 = 023   
+				               
+							   
+				[root@localhost tmp]# umask 023
+                [root@localhost tmp]# umask -S
+                u=rwx,g=rx,o=r
+				
+2).这是在创建test目录，发现权限改变为 rwxr-xr--
+
+[root@localhost tmp]# mkdir test
+[root@localhost tmp]# ls -ld test/
+drwxr-xr--. 2 root root 4096 10月 29 21:56 test/
+-------------------------------------------------------------------------------
+
+
+
+
 
 
