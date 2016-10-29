@@ -804,7 +804,149 @@ drwxr-xr--. 2 root root 4096 10月 29 21:56 test/
 -------------------------------------------------------------------------------
 
 
+文件搜索命令 ： find
 
+命令名称：find
+
+命令所在路径：/bin/find
+
+执行权限：所有用户
+
+语法：find [搜索范围] [匹配条件]
+
+功能描述：文件搜索
+
+[root@localhost tmp]# find /etc -name init
+/etc/sysconfig/init
+/etc/init
+/etc/kdump-adv-conf/kdump_initscripts/init
+
+在目录/etc中查找文件init
+
+文件中带有init的搜索， * 匹配任意字符
+[root@localhost tmp]# find /etc -name *init*
+
+以init开头的字母搜索
+[root@localhost tmp]# find /etc/ -name init*
+
+以init开头的且后面只有3个字母搜索
+[root@localhost tmp]# find /etc -name init???
+/etc/inittab
+
+创建一个INITTAB，再搜索init???,会搜索不到，因为Linux严格区分大小写
+[root@localhost tmp]# touch /etc/INITTAB
+[root@localhost tmp]# find /etc/ -name init???
+/etc/inittab
+
+如果想对搜寻结果不区分大小写 可以加 -iname(-iname 不区分大小写)
+[root@localhost tmp]# find /etc/ -iname init???
+/etc/inittab
+/etc/INITTAB
+
+
+--------------------------------------------------
+
+根据文件大小来查找
+
+1数据块 = 512 字节 = 0.5K
+100M = 102400kb = 204800 数据块
+
+ 
+$ find / -size +204800
+在根目录下查找大于100MB的文件
++n 大于 -n 小于 n 等于
+-------------------------------------------------
+根据所有者来查找
+
+在根目录下查找所有者为yujiansong的文件
+[root@localhost tmp]# find /home/ -user yujiansong
+/home/yujiansong
+/home/yujiansong/.bashrc
+/home/yujiansong/.bash_history
+/home/yujiansong/huazai
+/home/yujiansong/.bash_profile
+/home/yujiansong/.bash_logout
+/home/yujiansong/.gnome2
+
+-group 根据所属组查找
+---------------------------------------------------
+
+根据时间属性来查找
+
+-amin 访问时间 access
+
+-cmin 文件属性 change
+
+-mmin 文件内容 modify
+
+在/etc下查找30分钟内被修改过属性的文件和
+目录
+[root@localhost tmp]# find /etc/ -mmin -30
+/etc/
+/etc/INITTAB
+
+--------------------------------------------------
+
+$ find /etc -size +163840 -a -size -204800
+在/etc下查找大于80MB小于100MB的文件
+-a 两个条件同时满足(and)
+-o 两个条件满足任意一个即可
+
+-type 根据文件类型查找
+f 文件 d 目录 l 软链接文件
+
+查看以init开头的文件：
+
+[root@localhost tmp]# find /etc/ -name init* -a -type f
+/etc/sysconfig/init
+/etc/sysconfig/network-scripts/init.ipv6-global
+/etc/init/init-system-dbus.conf
+/etc/kdump-adv-conf/kdump_initscripts/init
+/etc/selinux/targeted/contexts/initrc_context
+/etc/inittab
+
+查看以init开头的目录：
+
+[root@localhost tmp]# find /etc/ -name init* -a -type d
+/etc/rc.d/init.d
+/etc/init
+
+$ find /etc -name inittab -exec ls -l {} \;
+在/etc下查找inittab文件并显示其详细信息
+-exec/-ok 命令 {} \; 对搜索结果执行操作
+
+在/etc下查找inittab文件并显示其详细信息
+[root@localhost tmp]# find /etc -name inittab -exec ls -l {} \;
+-rw-r--r--. 1 root root 884 10月 27 20:29 /etc/inittab
+
+
+在/etc下查找init开头的文件并显示其详细信息
+[root@localhost tmp]# find /etc -name init* -a -type f -exec ls -l {} \;
+-rw-r--r--. 1 root root 1154 6月  23 2012 /etc/sysconfig/init
+-rwxr-xr-x. 1 root root 4623 4月  27 2012 /etc/sysconfig/network-scripts/init.ipv6-global
+-rw-r--r--. 1 root root 130 6月  22 2012 /etc/init/init-system-dbus.conf
+-rwxr-xr-x. 1 root root 4781 10月 29 2009 /etc/kdump-adv-conf/kdump_initscripts/init
+-rw-r--r--. 1 root root 30 6月  22 2012 /etc/selinux/targeted/contexts/initrc_context
+-rw-r--r--. 1 root root 884 10月 27 20:29 /etc/inittab
+
+-exec 和 -ok 的区别：
+
+[root@localhost tmp]# find /home -user yujiansong -ok rm {} \;
+< rm ... /home/yujiansong > ? n
+< rm ... /home/yujiansong/.bashrc > ? n
+< rm ... /home/yujiansong/.bash_history > ? n
+< rm ... /home/yujiansong/huazai > ? n
+< rm ... /home/yujiansong/.bash_profile > ? n
+< rm ... /home/yujiansong/.bash_logout > ? n
+< rm ... /home/yujiansong/.gnome2 > ? n
+
+
+
+-inum 根据i节点查找并删除
+[root@localhost tmp]# ls -i
+[root@localhost tmp]# find . -inum 393314 -exec rm {} \;
+
+----------------------------------------------------------------------------------------------------
 
 
 
