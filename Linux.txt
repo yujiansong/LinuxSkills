@@ -582,4 +582,97 @@ echo "this is a test" >> /etc/motd
 ----------------------------------------------------------------------------------
 
 
+权限管理命令 ： chmod
+
+命令名称：chmod
+
+命令英文原意：change the permissions mode of a file
+
+命令所在路径：/bin/chmod
+
+执行权限：所有用户
+
+语法：chmod [{ugoa}{+-=}{rwx}] [文件或目录]
+
+[mode=421 ] [文件或目录]
+
+-R 递归修改
+
+功能描述：改变文件或目录权限
+
+权限的数字表示
+
+r ---- 4
+
+w ---- 2
+
+x ---- 1
+
+rwxrw-r--
+
+7  6  4
+
+范例：-rw-r--r--. 1 root root    0 10月 28 23:24 Japanlovestory.list
+
+     [root@localhost tmp]# chmod u+x Japanlovestory.list
+	 给Japanlovestory.list增加x可执行权限
+	 -rwxr--r--. 1 root root    0 10月 28 23:24 Japanlovestory.list
+	 
+	 [root@localhost tmp]# chmod g+w,o-r Japanlovestory.list 
+	 给所属组增加w权限，让其他人减去r权限
+	 -rwxrw----. 1 root root    0 10月 28 23:24 Japanlovestory.list
+	 
+	 [root@localhost tmp]# chomd g=rwx Japanlovestory.list 
+	 令所属组为rwx权限
+	 [root@localhost tmp]# ls -ld Japanlovestory.list 
+     -rwxrwx---. 1 root root 0 10月 28 23:24 Japanlovestory.list
+	 
+	 [root@localhost tmp]# chmod 640 Japanlovestory.list
+	 用权限的数字来更改
+	 [root@localhost tmp]# ls -ld Japanlovestory.list 
+     -rw-r-----. 1 root root 0 10月 28 23:24 Japanlovestory.list
+	 
+	 
+	 在tmp下创建a和b
+	[root@localhost tmp]# mkdir -p /tmp/a/b
+	[root@localhost tmp]# ls -ld /tmp/a
+	drwxr-xr-x. 3 root root 4096 10月 29 19:23 /tmp/a
+	
+	[root@localhost tmp]# ls -ld /tmp/a/b
+	drwxr-xr-x. 2 root root 4096 10月 29 19:23 /tmp/a/b
+	
+	在用权限数字修改a的权限
+	[root@localhost tmp]# chmod 777 /tmp/a
+	
+	[root@localhost tmp]# ls -ld /tmp/a
+	drwxrwxrwx. 3 root root 4096 10月 29 19:23 /tmp/a
+	查看b的权限发现并没有因此而改变
+	[root@localhost tmp]# ls -ld /tmp/a/b
+	drwxr-xr-x. 2 root root 4096 10月 29 19:23 /tmp/a/b
+	
+	 如果想一同改变目录和子目录下的权限，加 -R递归修改
+	[root@localhost tmp]# chmod -R 777 /tmp/a
+    [root@localhost tmp]# ls -ld /tmp/a/b
+    drwxrwxrwx. 2 root root 4096 10月 29 19:23 /tmp/a/b
+
+$ chmod g+w testfile
+
+赋予文件testfile所属组写权限
+
+$ chmod -R 777 testdir
+
+修改目录testfile及其目录下文件为所有用户具
+有全部权限
+
+添加一个新用户：
+
+[root@localhost tmp]# useradd yujiansong
+[root@localhost tmp]# passwd yujiansong
+更改用户 yujiansong 的密码 。
+新的 密码：yujiansong
+重新输入新的 密码：yujiansong
+passwd： 所有的身份验证令牌已经成功更新。
+
+
+
 
