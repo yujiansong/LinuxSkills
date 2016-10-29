@@ -948,5 +948,119 @@ $ find /etc -name inittab -exec ls -l {} \;
 
 ----------------------------------------------------------------------------------------------------
 
+文件搜索命令 ： locate
+
+命令名称：locate
+
+命令所在路径：/usr/bin/locate
+
+执行权限：所有用户
+
+语法：locate 文件名
+
+功能描述：在文件资料库中查找文件
+
+范例：
+	[root@localhost ~]# locate inittab
+	/etc/.inittab.swp
+	/etc/inittab
+	/usr/share/man/man5/inittab.5.gz
+	/usr/share/vim/vim72/syntax/inittab.vim
+	
+注意：新建的文件找不到,可以用find找.
+    也可以更新文件资料库/var/lib/mlocate/mlocate.db
+	
+	[root@localhost ~]# updatedb
+	
+	[root@localhost ~]# locate yangmi
+    /root/yangmi
+	
+	如果创建的文件存在临时文件下面，用locate找不到.
+	[root@localhost ~]# touch /tmp/zhangbozhi
+	[root@localhost ~]# updatedb
+	[root@localhost ~]# locate zhangbozhi
+	
+	如果不区分大小写，locate查不到
+	[root@localhost ~]# touch /root/Teacher.Cang
+	[root@localhost ~]# updatedb
+	[root@localhost ~]# locate teacher.cang
+	
+	可以加 -i 不区分大小写.
+	[root@localhost ~]# locate -i teacher.cang
+    /root/Teacher.Cang
+	
+------------------------------------------------------------------------------
+
+文件搜索命令 ： which
+
+命令所在路径：/usr/bin/which
+
+执行权限：所有用户
+
+语法：which 命令
+
+功能描述：搜索命令所在目录及别名信息
+
+范例：
+	[root@localhost ~]# which cp
+     alias cp='cp -i'
+     /bin/cp
+	 
+	 cp -i 的别名是 cp
+
+-------------------------------------------------------------------------------
+
+命令名称：whereis
+
+命令所在路径：/usr/bin/whereis
+
+执行权限：所有用户
+
+语法：whereis [命令名称]
+
+功能描述：搜索命令所在目录及帮助文档路径
+
+范例：
+	 [root@localhost ~]# whereis useradd
+	useradd: /usr/sbin/useradd /usr/share/man/man8/useradd.8.gz
+	
+	[root@localhost ~]# whereis rm
+	rm: /bin/rm /usr/share/man/man1p/rm.1p.gz /usr/share/man/man1/rm.1.gz
+
+--------------------------------------------------------------------------------
+
+文件搜索命令 ： grep
+
+命令名称：grep
+
+命令所在路径：/bin/grep
+
+执行权限：所有用户
+
+语法：grep -iv [指定字串] [文件]
+
+功能描述：在文件中搜寻字串匹配的行并输出
+
+-i 不区分大小写
+-v 排除指定字串
+
+范例：
+		
+		[root@localhost ~]# grep multiuser /etc/inittab
+        #   3 - Full multiuser mode
+		
+		*加 -i 不区分大小写
+		[root@localhost ~]# grep -i multiuser /etc/inittab
+		#   2 - Multiuser, without NFS (The same as 3, if you do not have networking)
+		#   3 - Full multiuser mode
+		
+		去掉注释行
+		[root@localhost ~]# grep -v ^# /etc/inittab
+        id:3:initdefault:
+		
+
+----------------------------------------------------------------------------------
+
+
 
 

@@ -76,3 +76,9 @@ print('hello,', name)
 C:\Workspace> python hello.py
 please enter your name: Michael
 hello, Michael
+
+---------------------------------------------------------------
+
+数据类型和变量
+
+
