@@ -1292,7 +1292,7 @@ WHAT : 用户执行的操作
 功能描述：解压缩.gz的压缩文件
 
 范例： 
-		[root@localhost tmp]# gunzip boduo.gz
+		[root@localhost tmp]# gunzip boduo.gz/boduo
 		[root@localhost tmp]# ls -l
 		总用量 628
 		-rw-r--r--. 1 root root 641020 10月 30 19:12 boduo
@@ -1479,6 +1479,12 @@ zip 选项[-r] [压缩后文件名] [文件或目录]
 范例：$ bunzip2 -k boduo.bz2
 
 $ tar -xjf Japan.tar.bz2
+
+----------------------------------------------------------------------------------------
+
+
+
+
 
 
 
