@@ -1061,6 +1061,74 @@ $ find /etc -name inittab -exec ls -l {} \;
 
 ----------------------------------------------------------------------------------
 
+帮助命令 ： man
 
+命令名称：man
+
+命令英文原意：manual
+
+命令所在路径：/usr/bin/man
+
+执行权限：所有用户
+
+语法：man [命令或配置文件]
+
+功能描述：获得帮助信息
+
+范例： $ man ls
+查看ls命令的帮助信息
+
+$ man services
+查看配置文件services的帮助信息
+
+whatis 命令
+
+[root@localhost ~]# whatis ls
+ls                   (1)  - list directory contents
+ls                   (1p)  - list directory contents
+
+apropos 配置文件
+[root@localhost ~]# apropos inittab
+inittab              (5)  - init daemon configuration
+
+
+修改时间：
+
+1).查看当前时间
+[root@localhost ~]# date
+2016年 10月 30日 星期日 08:03:35 CST
+
+2).用 man 来查看 date 帮助信息
+[root@localhost ~]# man date
+
+3).获取到
+SYNOPSIS
+       date [OPTION]... [+FORMAT]
+       date [-u|--utc|--universal] [MMDDhhmm[[CC]YY][.ss]]
+
+4).设置时间
+[root@localhost ~]# date 103000052016.18
+2016年 10月 30日 星期日 00:05:18 CST
+
+
+------------------------------------------------------------
+
+帮助命令 ： help
+
+命令名称：help
+
+命令所在路径：Shell内置命令
+
+执行权限：所有用户
+
+语法：help 命令
+
+功能描述：获得Shell内置命令的帮助信息
+
+范例： $ help umask
+查看umask命令的帮助信息
+
+--help 获得常见的选项
+[root@localhost ~]# touch --help
 
 
