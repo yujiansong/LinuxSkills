@@ -2,19 +2,111 @@
 
 ===========================================================
 
-网络配置：
+1、常用yum命令
 
-1).setup : 空格去掉 使用DHCP里的 *
+1）查询
 
-深圳 电信DNS设置  202.96.128.68 
+[root@localhost yum.repos.d]# yum list
+# 查询所有可用软件包列表
 
-==============================================================
- 右键你要设置的虚拟机选“设置” 
- 将右边的网络连接改为NAT－确定。 
- 点菜单栏里的“编辑”－选“虚拟网络设置”，
- 先将“自动桥接”给去掉（去掉钩钩），
- 再选“DHCP”开启DHCP服务，点“开始”－应用，
- 再按同样的方法开启“NAT”的功能最重要的是你的两个服务必须开启：
- VMware DHCP Service 和VMware NAT Service。
- 具体操作如下: 开始---设置--控制面板---管理工具---服务，
- 确保 VMware DHCP Service 和VMware NAT Service 服务已经启动。
+[root@localhost yum.repos.d]# yum search 关键字
+# 搜索服务器上所有和关键字相关的包
+
+--------------------------------------------------------
+
+2）安装
+[root@localhost yum.repos.d]# yum –y install 包名
+
+选项：
+
+install  安装
+
+-y 自动回答yes
+
+例： 安装httpd
+	
+	yum -y install httpd*
+
+-------------------------------------------------------
+
+3）升级
+[root@localhost yum.repos.d]# yum -y update 包名
+
+选项：
+
+update  升级
+
+-y 自动回答yes
+
+-----------------------------------------------------
+
+4）卸载
+[root@localhost yum.repos.d]# yum -y remove 包名
+
+选项：
+
+remove  卸载
+
+-y 自动回答yes
+
+---------------------------------------------------------
+
+2、YUM软件组管理命令
+
+[root@localhost ~]# yum grouplist
+#列出所有可用的软件组列表
+
+[root@localhost ~]# yum groupinstall 软件组名
+#安装指定软件组，组名可以由grouplist查询出来
+
+[root@localhost ~]# yum groupremove 软件组名
+#卸载指定软件组
+
+
+============================================================================
+
+光盘yum源搭建步骤
+
+1）挂载光盘
+[root@localhost ~]# mount /dev/sr0  /mnt/cdrom/
+mount: block device /dev/sr0 is write-protected, mounting read-only
+  
+  可以用mount命令查看一下挂载的光盘
+ [root@localhost ~]# mount
+
+2）让网络yum源文件失效(把除了CentOS-Media.repo之外的文件 .repo 改为 .bak)
+[root@localhost ~]# cd /etc/yum.repos.d/
+[root@localhost yum.repos.d]# mv CentOS-Base.repo \
+CentOS-Base.repo.bak
+[root@localhost yum.repos.d]# mv CentOS-Debuginfo.repo \
+CentOS-Debuginfo.repo.bak
+[root@localhost yum.repos.d]# mv CentOS-Vault.repo \
+CentOS-Vault.repo.bak
+
+
+3）修改光盘yum源文件
+[root@localhost yum.repos.d]# vim CentOS-Media.repo
+[c6-media]
+name=CentOS-$releasever - Media
+baseurl=file:///mnt/cdrom
+# 地址为你自己的光盘挂载地址
+# file:///media/cdrom/
+# file:///media/cdrecorder/
+# 注释这两个不存在的地址
+gpgcheck=1
+enabled=1
+# 把 enabled=0 改为 enabled=1 ，让这个 yum 源配置文件生效
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-6
+
+
+
+=========================================================================================
+
+ 1). [root@localhost init.d]# cd /var/www/html/
+
+ 2). [root@localhost html]# ls
+
+ 3). 可以写一个html在浏览器进行输出
+     [root@localhost html]# vim index.html
+	 
+ 4). 刷新Linux的IP地址的浏览器.
