@@ -110,3 +110,93 @@ gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-6
      [root@localhost html]# vim index.html
 	 
  4). 刷新Linux的IP地址的浏览器.
+ 
+=========================================================================================
+WinSCP
+
+ssh-rsa 2048 b8:72:f9:33:b1:ae:54:02:68:69:82:f5:c8:ab:e8:69
+
+=========================================================================================
+
+源码包安装过程:
+
+1). 下载源码包  httpd-2.2.31.tar.gz
+
+2). 解压缩下载的源码包  tar -zxvf httpd-2.2.31.tar.gz
+
+3).  用 du 查看目录大小
+
+     [root@localhost ~]# du -sh httpd-2.2.31
+     43M     httpd-2.2.31
+
+4). 进入解压缩目录
+
+    [root@localhost ~]# cd httpd-2.2.31
+	
+	ls 查看目录 
+	
+	找到 INSTALL   安装说明
+	     README    使用说明
+	
+	遇到陌生的源代码需要先查看安装说明，再查看使用说明.
+	
+
+5).  查看 INSTALL
+    
+	 vi INSTALL :
+	 
+	 ./configure 软件配置与检查
+	 
+ 定义需要的功能选项。
+
+ 检测系统环境是否符合安装要求。 ls
+
+ 把定义好的功能选项和检测系统环境的信息
+   都写入Makefile文件，用于后续的编辑。 
+   
+   例：
+	   
+      [root@localhost httpd-2.2.31]# ./configure --prefix=/usr/local/apache2
+	
+		执行完成后 ls  发现已经成了 Makefile
+6).  make  编译
+     
+	 *如果5,6出错 则执行 make laean  
+
+7). make install 编译安装 
+
+8). 启动源码包的Apache
+   
+    [root@localhost httpd-2.2.31]# /usr/local/apache2/bin/apachectl start
+	
+	如果出现以下报错，因为是rpm包的Apache服务占用了80端口号，所以需要停止rpm包的Apache服务.
+	httpd: Could not reliably determine the server's fully qualified domain name, using localhost.localdomain for ServerName
+	(98)Address already in use: make_sock: could not bind to address [::]:80
+	(98)Address already in use: make_sock: could not bind to address 0.0.0.0:80
+	no listening sockets available, shutting down
+	Unable to open logs
+	
+	停止rpm包的Apache服务
+	[root@localhost httpd-2.2.31]# service httpd stop
+    停止 httpd：                                              [确定]
+	
+	然后再启动源码包的Apache  
+	
+	[root@localhost httpd-2.2.31]# /usr/local/apache2/bin/apachectl start
+    httpd: Could not reliably determine the server's fully qualified domain name, 
+	using localhost.localdomain for ServerName
+	
+	
+	在网页上输入Linux IP  192.168.193.128，会出现 It Works!
+	
+	
+9).源码包卸载 
+   
+   如果卸载，直接使用 rm 命令 
+   
+   rm -rf /usr/local/apache2
+	
+	
+	
+	  
+	   
