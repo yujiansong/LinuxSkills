@@ -81,4 +81,36 @@ Windows 搜索工具 everything
 
 4).在SecureCRT的远程终端输入和虚拟机相同的 IP (192.168.3.82),输入root ,之后输入密码就可以进行连接.
 
-5).
+============================================================================================================
+
+RPM包安装的apache的启动方法：
+
+1). 先进入  cd /etc/rc.d/init.d/   
+    ls  查看是否存在httpd
+
+2). 启动Apache  /etc/rc.d/init.d/httpd start 或  service httpd start
+
+3). 进入 vim /etc/httpd/conf/http.conf (如果出现  
+   启动apache遇到错误：httpd: Could not reliably determine the server's fully qualified 
+   domain name...)
+
+    1).编辑httpd.conf文件，搜索"#ServerName"，添加ServerName localhost:80
+	
+	[root@server conf]# ls
+	
+	extra  httpd.conf  magic  mime.types  original
+	
+	[root@server conf]# vi httpd.conf
+	
+	#ServerName www.example.com:80
+	ServerName localhost:80
+	
+	2)再重新启动apache 即可。
+	[root@server ~]# /usr/local/apache/bin/apachectl restart
+
+4). *关闭Linux防火墙！  service iptables stop
+
+5). 在浏览器输入Linux的IP地址即可查看  Apache 2 Test Page powered by CentOS 测试页.
+
+
+
