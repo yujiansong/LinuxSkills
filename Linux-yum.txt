@@ -195,7 +195,45 @@ ssh-rsa 2048 b8:72:f9:33:b1:ae:54:02:68:69:82:f5:c8:ab:e8:69
    如果卸载，直接使用 rm 命令 
    
    rm -rf /usr/local/apache2
+   
+   
+==========================================================================================
+脚本安装包：
+
+Webmin安装
+
+http://sourceforge.net/projects/webadmin/files/webmin/
+
+
+1).下载好软件包后通过 WinSCP 放到 Linux 里
+
+2). ls 查看软件包 ， 通过 tar -zxvf 进行解压缩
+
+    之后可以查看解压后的大小
 	
+	[root@localhost ~]# du -sh webmin-1.660
+    135M    webmin-1.660
+
+3). 安装  ./setup.sh
+	
+	默认...
+	
+	Webmin:  admin   123
+
+4). 安装完成出现
+   
+    ***********************************************************************
+    Webmin has been installed and started successfully. Use your web
+    browser to go to
+
+    http://localhost.localdomain:10000/
+
+    and login with the name and password you entered previously.
+
+5).	 之后再浏览器输入Linux的IP地址和端口号 
+     http://192.168.193.128:10000/
+	  
+	 输入账户  和 密码 即可登录 Webmin 界面
 	
 	
 	  
