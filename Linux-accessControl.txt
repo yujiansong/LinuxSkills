@@ -1,0 +1,374 @@
+
+
+================================================
+
+查看分区ACL权限是否开启
+
+[root@localhost ~]# dumpe2fs -h /dev/sda3
+
+#dumpe2fs 命令是查询指定分区详细文件系统信息的命令
+
+选项：
+
+   -h 仅显示超级块中信息，而不显示磁盘块组的详细信息
+   
+   
+临时开启分区ACL权限
+
+  [root@localhost ~]# mount -o remount,acl /
+  # 重新挂载根分区，并挂载加入 acl 权限
+  
+  
+永久开启分区ACL权限
+
+  [root@localhost ~]# vi /etc/fstab
+  UUID=c2ca6f57-b15c-43ea-bca0-f239083d8bd2 / ext4 defaults,acl 1 1
+  # 加入 acl
+  
+  [root@localhost ~]# mount -o remount /
+  # 重新挂载文件系统或重启动系统，使修改生效
+  
+=====================================================================
+
+1、查看ACL命令
+
+[root@localhost ~]# getfacle 文件名
+# 查看 acl 权限
+
+2、设定ACL权限的命令
+
+[root@localhost ~]# setfacl 选项 文件名
+选项：
+
+ -m 设定ACL权限
+ 
+ -x 删除指定的ACL权限
+ 
+ -b 删除所有的ACL权限
+ 
+ -d 设定默认ACL权限。
+ 
+ -k 删除默认ACL权限
+ 
+ -R 递归设定ACL权限。
+ 
+3、给用户设定ACL权限
+
+[root@localhost ~]# useradd zhangsan
+
+[root@localhost ~]# useradd lisi
+
+[root@localhost ~]# useradd st
+
+[root@localhost ~]# groupadd tgroup
+
+[root@localhost ~]# mkdir /project
+
+[root@localhost ~]# chown root:tgroup /project/
+
+[root@localhost ~]# chmod 770 /project/
+
+[root@localhost ~]# setfacl -m u:st:rx /project/
+
+# 给用户 st 赋予 r-x 权限，使用“ u: 用户名 : 权限”格式
+
+4、给用户组设定ACL权限
+
+[root@localhost /]# groupadd tgroup2
+
+[root@localhost /]# setfacl -m g:tgroup2:rwx project/
+
+# 为组 tgroup2 分配 ACl 权限。使用“ g: 组名 : 权限”格式
+
+
+例：给用户设定ACL权限
+   1).创建两个用户aaa,bbb
+   [root@localhost tmp]# useradd aaa
+   [root@localhost tmp]# useradd bbb
+   2).创建一个所属组tgroup
+   [root@localhost tmp]# groupadd tgroup
+   
+   3)分别把aaa,bbb加入所属组tgroup里
+   [root@localhost tmp]# gpasswd -a aaa tgroup
+    Adding user aaa to group tgroup
+	
+   [root@localhost tmp]# gpasswd -a bbb tgroup
+   Adding user bbb to group tgroup
+   
+   4).可以查看一下组状态
+   [root@localhost tmp]# cat /etc/group
+    aaa:x:556:
+    bbb:x:557:
+    tgroup:x:558:aaa,bbb
+
+  5).改所有者为root,所属组为tgroup.
+  [root@localhost tmp]# chown root:tgroup /project/
+  
+  6).设定权限
+  [root@localhost tmp]# chmod 770 /project/
+  
+  7).查看权限
+  [root@localhost tmp]# ll -d /project/
+  drwxrwx---. 2 root tgroup 4096 11月  2 21:40 /project/
+  
+  8).创建一个试听用户,并设定密码.
+  [root@localhost tmp]# adduser ccc
+  [root@localhost tmp]# passwd ccc
+  
+  
+  9).给试听者ccc设定rx权限，并查看
+ [root@localhost tmp]# setfacl -m u:ccc:rx /project/
+ [root@localhost tmp]# ll -d /project/
+ drwxrwx---+ 2 root tgroup 4096 11月  2 21:40 /project/
+ 
+ [root@localhost tmp]# getfacl /project/
+getfacl: Removing leading '/' from absolute path names
+# file: project/
+# owner: root
+# group: tgroup
+user::rwx
+user:ccc:r-x
+group::rwx
+mask::rwx
+other::---
+ 
+ 10).用ccc登录，看是否可以创建文件
+ 
+ [root@localhost tmp]# su - ccc
+ 
+ [ccc@localhost ~]$ cd /project/
+
+ [ccc@localhost project]$ ls
+ 
+ [ccc@localhost project]$ touch abc
+ touch: 无法创建"abc": 权限不够
+ 
+ [ccc@localhost project]$ exit
+ logout
+ 
+例：给用户组设定ACL权限
+
+1).创建一个用户组tgroup2
+[root@localhost tmp]# groupadd tgroup2
+
+2). 给用户组设定rwx权限
+[root@localhost tmp]# setfacl -m g:tgroup2:rwx /project/
+
+3).查看权限
+[root@localhost tmp]# getfacl /project/
+getfacl: Removing leading '/' from absolute path names
+# file: project/
+# owner: root
+# group: tgroup
+user::rwx
+user:ccc:r-x
+group::rwx
+group:tgroup2:rwx
+mask::rwx
+other::---
+
+====================================================================
+
+1、最大有效权限mask
+
+   mask是用来指定最大有效权限的。如果
+我给用户赋予了ACL权限，是需要和
+mask的权限“相与”才能得到用户的真
+正权限
+
+
+修改最大有效权限
+
+[root@localhost /]# setfacl -m m:rx 文件名
+# 设定 mask 权限为 r-x 。使用“ m: 权限”格式
+
+
+2、删除ACL权限
+
+[root@localhost /]# setfacl -x u:用户名 文件名
+# 删除指定用户的 ACL 权限
+
+[root@localhost /]# setfacl -x g:组名 文件名
+# 删除指定用户组的 ACL 权限
+
+[root@localhost /]# setfacl -b 文件名
+# 会删除文件的所有的 ACL 权限
+
+例：修改最大有效权限
+
+[root@localhost tmp]# setfacl -m m:rx /project/
+[root@localhost tmp]# getfacl /project/
+
+getfacl: Removing leading '/' from absolute path names
+# file: project/
+# owner: root
+# group: tgroup
+user::rwx
+user:ccc:r-x
+group::rwx                      #effective:r-x
+group:tgroup2:rwx               #effective:r-x
+mask::r-x
+other::---
+
+删除tgroup2用户的 ACL 权限
+[root@localhost tmp]# setfacl -x g:tgroup2 /project/
+[root@localhost tmp]# getfacl /project/
+getfacl: Removing leading '/' from absolute path names
+# file: project/
+# owner: root
+# group: tgroup
+user::rwx
+user:ccc:r-x
+group::rwx
+mask::rwx
+other::---
+
+删除文件的所有的 ACL 权限
+[root@localhost tmp]# setfacl -b /project/
+[root@localhost tmp]# getfacl /project/
+getfacl: Removing leading '/' from absolute path names
+# file: project/
+# owner: root
+# group: tgroup
+user::rwx
+group::rwx
+other::---
+
+[root@localhost tmp]# ll -d /project/
+drwxrwx---. 2 root tgroup 4096 11月  2 21:40 /project/
+
+=========================================================================
+
+1、递归ACL权限
+
+递归是父目录在设定ACL权限时，所有的子文
+件和子目录也会拥有相同的ACL权限。
+
+setfacl -m u:用户名:权限 -R 文件名
+
+2、默认ACL权限
+
+默认ACL权限的作用是如果给父目录设定
+了默认ACL权限，那么父目录中所有新建
+的子文件都会继承父目录的ACL权限。
+
+setfacl -m d:u:用户名:权限 文件名
+
+例：递归ACL权限
+
+   1).在project文件夹里创建两个文件ddd,eee
+  [root@localhost project]# touch ddd
+  [root@localhost project]# touch eee
+
+   2).给project设定acl权限
+  [root@localhost project]# setfacl -m u:ccc:rx /project/
+  [root@localhost project]# ls
+  ddd  eee
+  
+   3).查看ddd,eee的权限，发现没有拥有acl权限
+  [root@localhost project]# ll
+  总用量 0
+  -rw-r--r--. 1 root root 0 11月  2 23:33 ddd
+  -rw-r--r--. 1 root root 0 11月  2 23:33 eee
+  
+   而project有acl权限
+  [root@localhost project]# ll -d /project/
+  drwxrwx---+ 2 root tgroup 4096 11月  2 23:33 /project/
+  
+  4).给project设定递归acl权限,在查询，发现ddd,eee拥有了acl权限.
+  [root@localhost project]# setfacl -m u:ccc:rx -R /project/
+  [root@localhost project]# ll
+  总用量 8
+  -rw-r-xr--+ 1 root root 0 11月  2 23:33 ddd
+  -rw-r-xr--+ 1 root root 0 11月  2 23:33 eee
+  
+  
+  [root@localhost project]# getfacl ddd
+  # file: ddd
+  # owner: root
+  # group: root
+  user::rw-
+  user:ccc:r-x
+  group::r--
+  mask::r-x
+  other::r--
+  
+   5).如果在project文件夹里在创建fff文件，会发现fff没有acl权限.
+  [root@localhost project]# touch fff
+  [root@localhost project]# ll
+  总用量 8
+  -rw-r-xr--+ 1 root root 0 11月  2 23:33 ddd
+  -rw-r-xr--+ 1 root root 0 11月  2 23:33 eee
+  -rw-r--r--. 1 root root 0 11月  2 23:38 fff
+  
+  6).默认ACL权限 ，之后创建的文件都会有acl权限
+  [root@localhost project]# setfacl -m d:u:ccc:rx -R /project/
+  
+  [root@localhost project]# touch ggg
+  [root@localhost project]# touch hhh
+  
+  [root@localhost project]# ll
+  总用量 16
+  -rw-r-xr--+ 1 root root 0 11月  2 23:33 ddd
+  -rw-r-xr--+ 1 root root 0 11月  2 23:33 eee
+  -rw-r--r--. 1 root root 0 11月  2 23:38 fff
+  -rw-rw----+ 1 root root 0 11月  2 23:53 ggg
+  -rw-rw----+ 1 root root 0 11月  2 23:53 hhh
+  
+============================================================================
+
+1、SetUID的功能
+
+ 只有可以执行的二进制程序才能设定SUID权限
+
+ 命令执行者要对该程序拥有x（执行）权限
+
+ 命令执行者在执行该程序时获得该程序文件属
+   主的身份（在执行程序的过程中灵魂附体为文
+   件的属主）
+   
+ SetUID权限只在该程序执行过程中有效，也就
+   是说身份改变只在程序执行过程中有效
+   
+   passwd命令拥有SetUID权限，所以普通可以修
+   改自己的密码
+   
+   
+   [root@localhost ~]# ll /usr/bin/passwd
+   -rwsr-xr-x. 1 root root 25980 2月 22 2012 /usr/bin/passwd
+   
+   cat命令没有SetUID权限，所以普通用户不能查
+   看/etc/shadow文件内容
+   
+   [root@localhost ~]# ll /bin/cat
+   -rwxr-xr-x 1 root root 47976 6月 22 2012 /bin/cat
+   
+2、设定SetUID的方法
+
+   4代表SUID
+   
+     chmod 4755 文件名
+	 
+	 chmod u+s 文件名
+	 
+3、取消SetUID的方法
+
+   chmod 755 文件名
+   
+   chmod u-s 文件名
+   
+4、危险的SetUID
+
+   关键目录应严格控制写权限。比如“/”、“/usr”等
+   
+   用户的密码设置要严格遵守密码三原则
+   
+   对系统中默认应该具有SetUID权限的文件
+   作一列表，定时检查有没有这之外的文件
+   被设置了SetUID权限
+
+   
+======================================================================
+
+
+   
