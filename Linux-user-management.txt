@@ -343,9 +343,113 @@
 		
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+1、SBIT粘着位作用
+  
+   粘着位目前只对目录有效
+   
+? 普通用户对该目录拥有w和x权限，即普通用户可以在此目录拥有写入权限
+
+? 如果没有粘着位，因为普通用户拥有w权限，所以可以删除此目录下所有文件，
+   包括其他用户建立的文件。一但赋予了粘着位，除了root可以删除所有文件，
+   普通用户就算拥有w权限，也只能删除自己建立的文件，但是不能删除其他
+   用户建立的文件
+   
+   [root@localhost ~]# ll -d /tmp/
+   drwxrwxrwt. 3 root root 4096 12月 13 11:22 /tmp/
+   
+   2、设置与取消粘着位
+   
+?设置粘着位
+? chmod 1755 目录名
+? chmod o+t 目录名
+
+?取消粘着位
+? chmod 777 目录名
+? chmod o-t 目录名
+
+++++++++++++++++++++++++++++++++++++
+su jiansong 切换用户身份为jiansong +
+++++++++++++++++++++++++++++++++++++
 
 
+例：
+	切换用户身份为jiansong
+	[root@localhost ~]# su jiansong
+	
+	[jiansong@localhost root]$ cd /tmp/
+	
+	创建一个文件jiansong-test
+	[jiansong@localhost tmp]$ touch jiansong-test
+	
+	[jiansong@localhost tmp]$ ls
+	cde  jiansong-test
+	
+	切换用户身份为liedehua
+	[jiansong@localhost tmp]$ su liudehua
+	密码：
+	
+	[liudehua@localhost tmp]$ ll
+	总用量 4
+	-rw-r--r--. 1 root     root     8 11月  3 07:13 cde
+	-rw-rw-r--. 1 jiansong jiansong 0 11月  3 17:11 jiansong-test
+	删除jiansong-test
+	[liudehua@localhost tmp]$ rm -rf jiansong-test
+	rm: 无法删除"jiansong-test": 不允许的操作
+	
+例：
+	#退出jiansong用户
+	[jiansong@localhost tmp]$ exit
+	exit
+	
+	[root@localhost ~]# cd /tmp/
 
+	[root@localhost tmp]# mkdir test
+	
+	[root@localhost tmp]# ll -d /test/
+	drwxr-xr-x. 2 root root 4096 11月  3 17:21 /test/
+	
+	#设置粘着位
+	[root@localhost tmp]# chmod 1755 /test/
+	
+	[root@localhost tmp]# ll -d /test/
+	drwxr-xr-t. 2 root root 4096 11月  3 17:21 /test/
+	
+	#取消粘着位
+	[root@localhost tmp]# chmod o-t /test/
+	
+	[root@localhost tmp]# ll -d /test/
+	drwxr-xr-x. 2 root root 4096 11月  3 17:21 /test/
+	
+=======================================================================
+	   
+1、sudo权限
 
+?root把本来只能超级用户执行的命令赋予普通用户执行。
 
+?sudo的操作对象是系统命令
 
+2、sudo使用
+
+	[root@localhost ~]# visudo
+	# 实际修改的是 /etc/sudoers 文件
+	
+	root ALL=(ALL) ALL
+	# 用户名 被管理主机的地址 = （可使用的身份） 授权命令（绝对路径）
+	
+	# %wheel ALL=(ALL) ALL
+	#% 组名 被管理主机的地址 = （可使用的身份） 授权命令（绝对路径）
+	
+3、授权sc用户可以重启服务器
+
+	[root@localhost ~]# visudo
+	
+	sc ALL= /sbin/shutdown –r now
+	
+4、普通用户执行sudo赋予的命令
+
+	[root@localhost ~]# su – sc
+	[sc@localhost ~]$ sudo -l
+	# 查看可用的 sudo 命令
+
+	[lamp@localhost ~]$ sudo /sbin/shutdown -r now
+	# 普通用户执行 sudo 赋予的命令
