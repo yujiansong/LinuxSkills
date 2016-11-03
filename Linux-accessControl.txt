@@ -32,7 +32,7 @@
 
 1、查看ACL命令
 
-[root@localhost ~]# getfacle 文件名
+[root@localhost ~]# getfacl 文件名
 # 查看 acl 权限
 
 2、设定ACL权限的命令
@@ -369,6 +369,129 @@ setfacl -m d:u:用户名:权限 文件名
 
    
 ======================================================================
+
+1、chattr命令格式
+
++: 增加权限
+-: 删除权限
+=: 等于某权限
+
+选项
+
+ i：如果对文件设置i属性，那么不允许对文件进行
+删除、改名，也不能添加和修改数据；如果对目录
+设置i属性，那么只能修改目录下文件的数据，但
+不允许建立和删除文件。
+ a：如果对文件设置a属性，那么只能在文件中增加
+数据，但是不能删除也不能修改数据；如果对目录
+设置a属性，那么只允许在目录中建立和修改文件
+，但是不允许删除
+
+2、查看文件系统属性
+
+[root@localhost ~]# lsattr 选项 文件名
+
+选项：
+
+-a 显示所有文件和目录
+
+-d 若目标是目录，仅列出目录本身的属性，而不是子文件的
+
+例：
+	 1).创建一个文件abc
+	[root@localhost tmp]# touch abc
+	
+	[root@localhost tmp]# ls
+	
+	abc  wanglaoer
+	
+	[root@localhost tmp]# ll
+	总用量 4
+	-rw-r--r--. 1 root root    0 11月  3 06:44 abc
+	drwxr-xr-x. 2 root root 4096 11月  3 01:19 wanglaoer
+	
+	[root@localhost tmp]# echo 111 >> abc
+	
+	[root@localhost tmp]# cat abc
+	111
+	
+	2).给文件设置i属性
+	[root@localhost tmp]# chattr +i abc
+	
+	[root@localhost tmp]# ll
+	总用量 8
+	-rw-r--r--. 1 root root    4 11月  3 06:45 abc
+	drwxr-xr-x. 2 root root 4096 11月  3 01:19 wanglaoer
+	
+	3).查看文件系统属性
+	[root@localhost tmp]# lsattr -a abc
+	----i--------e- abc
+	
+	4).写数据
+	[root@localhost tmp]# echo 1111 >> abc
+	-bash: abc: 权限不够
+	5).删除文件
+	[root@localhost tmp]# rm abc
+	rm：是否删除普通文件 "abc"？y
+	rm: 无法删除"abc": 不允许的操作
+	
+	例：
+	
+	创建test目录再创建abcd文件
+	[root@localhost /]# touch /test/abcd
+	
+	给test设置i权限
+	[root@localhost /]# chattr +i /test/
+	
+	查看文件系统属性
+	[root@localhost /]# lsattr -a /test/
+	-------------e- /test/abcd
+	----i--------e- /test/.
+	--------------- /test/..
+	
+	修改文件
+	[root@localhost /]# echo 2222 >> /test/abcd
+	
+	查看文件
+	[root@localhost /]# cat /test/abcd 
+	2222
+	
+	删除文件
+	[root@localhost /]# rm -rf /test/abcd 
+	rm: 无法删除"/test/abcd": 权限不够
+	
+	添加文件
+	[root@localhost /]# touch /test/aaa
+	touch: 无法创建"/test/aaa": 权限不够
+	
+	去掉i属性
+	[root@localhost /]# chattr -i /test/
+	删除abcd
+	[root@localhost /]# rm -rf /test/abcd 
+	
+	rm：是否删除普通文件 "/test/abcd"？y
+	
+	删除test
+	[root@localhost /]# rm -rf /test/
+	
+	
+	例：
+	
+	创建cdewen文件
+	[root@localhost tmp]# touch cde
+	写入内容
+	[root@localhost tmp]# echo 333 >> cde
+	查看文件
+	[root@localhost tmp]# cat cde
+	333
+	设置a属性
+	[root@localhost tmp]# chattr +a cde
+	添加文件内容，可以
+	[root@localhost tmp]# echo 444 >> cde
+	vim编辑器编辑，不可以
+	[root@localhost tmp]# vim cde
+	
+			   
 
 
    
