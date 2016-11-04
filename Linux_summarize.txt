@@ -1,0 +1,454 @@
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+ls :
+
+   命令英文原意： list
+   命令所在路径： /bin/ls
+   执行权限：     所有用户
+   功能描述：     显示目录文件
+   语法：   ls 选项[-ald] [文件或目录]
+   
+               -a  显示所有文件，包括隐藏文件（以 . 开头的都是隐藏文件）
+			   
+			   -l   详细信息显示
+			   
+			   -d  查看目录属性
+			   
+
+    ls -l = ll   :   相信信息显示.
+	
+	ll -h        :   人性化显示文件大小
+	
+	ll -d        :   针对某个目录，查看它的详细信息
+	
+	ls -i        :   查询i节点
+	
+	ls -a        :   查看隐藏文件
+	
+	ls -F        :   显示文件的类型   * 可执行文件
+	                                  / 目录
+									  @ 符号链接文件
+									  | 管道 FIFO
+									  = 套接字
+									  
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+mkdir :		
+		命令英文原意：make directories
+
+		命令所在路径： /bin/mkdir
+
+		执行权限： 所有用户
+
+		语法： mkdir -p [目录名]
+
+		功能描述： 创建新目录
+		
+				   -p 递归创建		
+        
+        mkdir -v  : 查看mkdir实际操作
+    
+					[root@localhost tmp]# mkdir -pv /a/b/c/d/e
+					mkdir: 已创建目录 "/a"
+					mkdir: 已创建目录 "/a/b"
+					mkdir: 已创建目录 "/a/b/c"
+					mkdir: 已创建目录 "/a/b/c/d"
+					mkdir: 已创建目录 "/a/b/c/d/e"	
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+命令名称： cd
+
+命令英文原意：change directory
+
+命令所在路径：shell内置命令
+
+执行权限： 所有用户
+
+语法： cd [目录]
+
+功能描述: 切换目录
+
+范例： $cd /tmp/Japan/boduo 切换到指定目录
+
+	   $cd .. 回到上一级目录
+	   
+	   cd -  : 返回到以前的目录
+	   
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+文件处理命令： rmdir
+
+命令名称： rmdir
+
+命令英文原意：remove empty directories
+
+所在路径： /bin/rmdir
+
+执行权限： 所有用户
+
+语法： rmdir [目录名]
+
+功能描述： 删除空目录
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+目录处理命令： cp
+
+命令名称： cp
+
+命令英文原意： copy
+
+命令所在路径： /bin/cp
+
+执行权限： 所有用户
+
+语法： cp -rp [原文件或目录][目标目录]
+          -r   复制目录
+		  -p  保留文件属性
+
+功能描述： 复制文件或目录
+
+           cp -R : 复制目录  cp -R libby libby_bak
+		   
+		   cp -a : 复制文件到其他目录已作为完整的备份
+		   
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+目录处理命令 ： mv
+
+命令名称：mv
+
+命令英文原意：move
+
+命令所在路径：/bin/mv
+
+执行权限：所有用户
+
+语法：mv [原文件或目录] [目标目录]
+
+功能描述：剪切文件、改名
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+目录处理命令 ： rm
+
+命令名称：      rm
+
+命令英文原意：remove
+
+命令所在路径：/bin/rm
+
+执行权限：所有用户
+
+语法：rm -rf [文件或目录]
+
+         -r 删除目录
+		 -f 强制执行
+		 
+功能描述：删除文件
+       
+	    rm *  : 使用通配符一次删除多个文件
+		
+		[root@localhost tmp]# ls
+		a.txt  cde    d.txt  hello2.sh  okay   okay_bak
+		b.txt  c.txt  e.txt  hello.sh   okay2  yangmi16
+		
+		[root@localhost tmp]# rm -rf *txt
+		
+		[root@localhost tmp]# ls
+		cde  hello2.sh  hello.sh  okay  okay2  okay_bak  yangmi16
+		
+		rm -v  : 删除文件时显示执行过程
+		
+				[root@localhost tmp]# ls
+				a.txt  cde    d.txt  hello2.sh  okay   okay_bak
+				b.txt  c.txt  e.txt  hello.sh   okay2  yangmi16
+				[root@localhost tmp]# rm -vrf *txt
+				已删除"a.txt"
+				已删除"b.txt"
+				已删除"c.txt"
+				已删除"d.txt"
+				已删除"e.txt"
+				
+		rm -i  : 防止删除重要文件
+		
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+文件处理命令 ： touch
+
+命令名称：touch
+
+命令所在路径：/bin/touch
+
+执行权限：所有用户
+
+语法：touch [文件名]
+
+功能描述：创建空文件
+
+          将文件时间修改为当前时间(只有获得修改文件的权限才可以对文件使用touch命令)
+		  
+			[root@localhost tmp]# ll -d hello2.sh
+			-rwxr-xr-x. 1 root root 35 11月  4 18:05 hello2.sh
+			
+			[root@localhost tmp]# touch hello2.sh
+			
+			[root@localhost tmp]# ll -d hello2.sh
+			-rwxr-xr-x. 1 root root 35 11月  4 18:37 hello2.sh
+			
+		 touch -t  : 将文件时间修改为想要的任意时间
+		 
+					[root@localhost tmp]# ll -d hello2.sh
+					-rwxr-xr-x. 1 root root 35 11月  4 18:37 hello2.sh
+					
+					[root@localhost tmp]# touch -t 201611041043 hello2.sh
+					
+					[root@localhost tmp]# ll -d hello2.sh
+					-rwxr-xr-x. 1 root root 35 11月  4 10:43 hello2.sh
+		  
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+文件处理命令 ： cat
+
+命令名称：cat
+
+命令所在路径：/bin/cat
+
+执行权限：所有用户
+
+语法：cat [文件名]
+
+功能描述：显示文件内容
+
+-n 显示行号
+
++++++++++++++++++++++++++++++++++++++++++++++++++
+
+权限管理命令 ： chmod
+
+命令名称：chmod
+
+命令英文原意：change the permissions mode of a file
+
+命令所在路径：/bin/chmod
+
+执行权限：所有用户
+
+语法：chmod [{ugoa}{+-=}{rwx}] [文件或目录]
+
+[mode=421 ] [文件或目录]
+
+-R 递归修改
+
+功能描述：改变文件或目录权限
+
+权限的数字表示
+
+r ---- 4
+
+w ---- 2
+
+x ---- 1
+
+rwxrw-r--
+
+7  6  4
+		  
+		  
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+权限管理命令 ： chown
+
+命令名称：chown
+
+命令英文原意：change file ownership
+
+命令所在路径：/bin/chown
+
+执行权限：所有用户
+
+语法：chown [用户] [文件或目录]
+
+功能描述：改变文件或目录的所有者
+
+范例：
+
+改变文件fengjie的所有者为jiansong
+
+1).创建一个fengjie的目录
+[root@localhost tmp]# touch fengjie
+
+2).查看文件所有者
+[root@localhost tmp]# ls -ld fengjie
+-rw-r--r--. 1 root root 0 10月 29 21:20 fengjie
+
+3).创建一个用户 jiansong
+[root@localhost tmp]# useradd jiansong
+
+4).改变文件的所有者为jiansong
+[root@localhost tmp]# chown jiansong fengjie
+
+5).再次查看文件所有者
+[root@localhost tmp]# ls -ld fengjie
+-rw-r--r--. 1 jiansong root 0 10月 29 21:20 fengjie
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+权限管理命令 ： chgrp
+
+命令名称：chgrp
+
+命令英文原意：change file group ownership
+
+命令所在路径：/bin/chgrp
+
+执行权限：所有用户
+
+语法：chgrp [用户组] [文件或目录]
+
+功能描述：改变文件或目录的所属组
+
+范例：
+
+改变文件fengjie的所属组为wanglaoer
+
+1).查看fengjie文件属性
+[root@localhost tmp]# ls -ld fengjie 
+-rw-r--r--. 1 jiansong root 0 10月 29 21:20 fengjie
+
+2).创建一个所属组为wanglaoer
+[root@localhost tmp]# groupadd wanglaoer
+
+3).改变文件fengjie的所属组为wanglaoer
+[root@localhost tmp]# chgrp wanglaoer fengjie
+
+4).再次查看文件所属组
+[root@localhost tmp]# ls -ld fengjie 
+-rw-r--r--. 1 jiansong wanglaoer 0 10月 29 21:20 fengjie
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+权限管理命令 ： umask
+
+命令名称：umask
+
+命令英文原意：the user file-creation mask
+
+命令所在路径：Shell内置命令
+
+执行权限：所有用户
+
+语法：umask [-S]
+
+-S 以rwx形式显示新建文件缺省权限
+
+功能描述：显示、设置文件的缺省权限
+
+范例： 
+
+显示默认的权限
+[root@localhost tmp]# umask -S
+u=rwx,g=rx,o=rx
+
+1).创建一个lamp目录
+[root@localhost tmp]# mkdir lamp
+
+2).查看lamp目录的权限，发现和默认的相同
+[root@localhost tmp]# ls -ld lamp/
+drwxr-xr-x. 2 root root 4096 10月 29 21:42 lamp/
+
+3).创建一个wangtianshe文件，查询权限少了一个可执行权限x
+[root@localhost tmp]# touch wangtianshe
+[root@localhost tmp]# ls -ld wangtianshe 
+-rw-r--r--. 1 root root 0 10月 29 21:43 wangtianshe
+
+
+[root@localhost tmp]# umask
+0022   
+
+权限为:  ----w--w-
+		777 - 022 = 755     rwxr-xr-x
+		
+1).如果想改默认权限为 rwxr-xr--   754
+                   777 - 754 = 023   
+				               
+							   
+				[root@localhost tmp]# umask 023
+                [root@localhost tmp]# umask -S
+                u=rwx,g=rx,o=r
+				
+2).这是在创建test目录，发现权限改变为 rwxr-xr--
+
+[root@localhost tmp]# mkdir test
+[root@localhost tmp]# ls -ld test/
+drwxr-xr--. 2 root root 4096 10月 29 21:56 test/
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+                     查找资料
+					 
+文件搜索命令 ： locate
+
+命令名称：locate
+
+命令所在路径：/usr/bin/locate
+
+执行权限：所有用户
+
+语法：locate 文件名
+
+功能描述：在文件资料库中查找文件
+
+          locate pdf | less   : 将locate搜索结果通过管道输出至分页器less命令
+		                         一次只在屏幕上显示一屏
+		  
+		    只想看前面的3个结果
+			[root@localhost tmp]# locate -n 3 pdf
+			/root/httpd-2.2.31/docs/icons/pdf.gif
+			/root/httpd-2.2.31/docs/icons/pdf.png
+			/usr/bin/dvipdf
+			
+		  updatedb    : 更新locate使用的数据库
+		  
+		  time updatedb  : 更新locate 数据库所花费的时间
+		  
+		  
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+grep : 在文本文件中搜索中搜索匹配的模式
+
+         检查文件中是否包含pain这个词，在终端界面打印包含搜索内容的那一行.
+		[root@localhost tmp]# grep pain laowang.txt
+		all alone and in pain
+		wanglaoer is in pain 
+		he is pain because he is more and more fat.
+
+        grep pain *  : 在多个文件中进行搜索.
+		
+		grep -n pain * : 显示搜索结果在文件中的行号.
+		
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+man:  
+    
+	man -f : 根据命令的名称快速查找命令的功能
+	
+			[root@localhost tmp]# man -f ls
+			ls                   (1)  - list directory contents
+			ls                   (1p)  - list directory contents
+			
+	
+		
+		
+		
+		   
+		   
+		   
+		   
+
+	
+	
+	
