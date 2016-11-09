@@ -1,0 +1,73 @@
+
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+1、RPM包安装服务的位置
+
+RPM安装服务和源码包安装服务的区别
+就是安装位置的不同
+
+	 源码包安装在指定位置，一般是/usr/local/
+	 
+	  RPM包安装在默认位置中
+	  
+
+	/etc/init.d/：启动脚本位置
+	
+	/etc/sysconfig/：初始化环境配置文件位置
+	
+	/etc/：配置文件位置
+	
+	/etc/xinetd.conf：xinetd配置文件
+	
+	/etc/xinetd.d/：基于xinetd服务的启动脚本
+	
+	/var/lib/：服务产生的数据放在这里
+	
+	/var/log/：日志
+	
+	
+2、独立服务的启动
+	
+	/etc/init.d/独立服务名 start|stop|status|restart|
+	
+	service 独立服务名 start|stop|restart||status
+	
+	[root@localhost log]# service --status-all
+	
+3、独立服务的自启动
+
+	chkconfig [--level 运行级别] [独立服务名] [on|off]
+	
+	 修改/etc/rc.d/rc.local文件
+	 
+	 使用ntsysv命令管理自启动
+	 
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+1、安装xinetd与telnet
+
+[root@localhost ~]# yum -y install xinetd
+
+[root@localhost ~]# yum -y install telnet-server 
+
+
+2、xinetd服务的启动
+
+[root@localhost ~]# vi /etc/xinetd.d/telnet
+
+重启xinetd服务
+
+[root@localhost ~]# service xinetd restart
+
+3、xinetd服务的自启动
+
+[root@localhost ~]# chkconfig telnet on
+
+ntsysv
+
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+
