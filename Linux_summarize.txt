@@ -440,6 +440,11 @@ man:
 			ls                   (1)  - list directory contents
 			ls                   (1p)  - list directory contents
 			
+			
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+如果SecureCRT终端选择了linux,之后没有颜色可以退出，再重新登录
+			
 	
 		
 		
