@@ -1,0 +1,79 @@
+
+++++++++++++++++++++++++++++++++++++++
+
+export命令用来设置环境变量：
+
+	$ echo $PATH
+	/home/slynux/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games
+	
+	export PATH="$PATH:/home/user/bin"
+	
+	$ echo $PATH
+	/home/slynux/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/home/user/bin
+	
++++++++++++++++++++++++++++++++++++++++++
+
+1. 获得字符串长度可以用下面的方法获得变量值的长度：
+
+length=${#var}
+
+例如：
+
+var=12345678901234567890
+
+echo ${#var}
+20
+length就是字符串所包含的字符数。
+
+++++++++++++++++++++++++++++++++++++++++++++
+
+2. 识别当前的shell版本
+
+可以用下面的方法获知当前使用的是哪种shell：
+
+[root@localhost sh]# echo $SHELL
+/bin/bash
+
+[root@localhost sh]# echo $0
+bash
+
+++++++++++++++++++++++++++++++++++++++++++++
+
+3. 检查是否为超级用户
+
+UID是一个重要的环境变量，可以用于检查当前脚本是以超级用户还是以普通用户的身份运行的。
+
+例如：
+
+[root@localhost sh]# vim uid.sh
+
+#!/bin/bash
+
+if [ $UID -ne 0 ]; then
+
+        echo Non root user,please run as root.
+else
+        echo "Root user"
+
+fi
+
+++++++++++++++++++++++++++++++++++++++++++++++++
+
+1.4　通过shell进行数学运算
+
+	let命令可以直接执行基本的算术操作。当使用let时，变量名之前不需要再添加$，
+	
+	例如：
+	
+[root@localhost sh]# no1=3
+
+[root@localhost sh]# no2=4
+
+[root@localhost sh]# let result=no1+no2
+
+[root@localhost sh]# echo $result
+
+7
+
+
+	
