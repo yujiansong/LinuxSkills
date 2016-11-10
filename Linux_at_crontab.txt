@@ -1,0 +1,214 @@
+
+
+++++++++++++++++++++++++++++++++++++++++++++
+
+at 定制单次执行的任务
+
+cron 定制周期性计划任务
+
+配置脚本实现周期性任务
+
+配置公司内网服务器每天自动开关机
+
+Linux系统日志记录规律
+
+自定义日志记录方式
+
+配置远程收集日志服务器
+
+=======================================
+
+
+计划任务：
+
+at #只能执行一次
+
+语法： 
+	
+at 时间  
+
+服务：atd 必须开启(默认开启)
+
+[root@localhost tmp]# /etc/init.d/atd status
+atd (pid  1723) 正在运行...
+
+
+如果没有开启 
+root@localhost tmp]# /etc/init.d/atd start
+
+例：
+ 
+[root@localhost tmp]# at 07:03
+at> echo `date` > /tmp/date.txt
+at> <EOT>
+
+# crtl +D 结束
+
+也可以这样写
+
+#at 20:00 2016-2-23
+
+#at now +10min
+
+例：
+
+[root@localhost tmp]# at 07:11 2016-11-11
+at> echo aaa > /tmp/a.txt
+at> <EOT>
+job 3 at 2016-11-11 07:11
+
+
+[root@localhost tmp]# at now+10min
+at> echo bbb > /tmp/b.txt
+at> <EOT>
+job 4 at 2016-11-11 07:20
+
+查看at任务计划
+
+[root@localhost tmp]# at -l
+4       2016-11-11 07:20 a root
+
+执行成功的at计划任务，会在目录下生成可执行脚本文件
+[root@localhost tmp]# ll /var/spool/at/*
+-rwx------. 1 root   root   2799 11月 11 07:11 /var/spool/at/a0000401781558
+
+
+vim /var/spool/at/a0000401781558
+
+at 任务删除：
+
+atrm at序列号
+
+[root@localhost tmp]# at -l
+5       2016-11-11 07:32 a root
+
+[root@localhost tmp]# atrm 5
+
+[root@localhost tmp]# at -l
+
+================================================================
+
+周期性的计划任务
+
+[root@localhost tmp]# vim /etc/crontab
+
+#查看服务是否开机启动
+[root@localhost tmp]# chkconfig --list crond
+crond           0:关闭  1:关闭  2:启用  3:启用  4:启用  5:启用    6:关闭
+
+如果没有开启
+[root@localhost tmp]# chkconfig crond on
+
+
+对于系统级别的计划任务，需要执行的命令的脚本都放在这里
+
+/etc/cron.daily:
+
+/etc/cron.hourly:
+
+/etc/cron.monthly:
+
+/etc/cron.weekly:
+
+==================================
+
+针对用户级别的计划任务：
+对于root用户：
+
+命令控制：
+
+#crontab -e  创建一个计划任务
+
+#crontab -l 显示
+
+#crontab -r 删除计划任务
+
+#crontab =e #写法
+
+分 时 日 月 周 谁做后面的事情 命令
+
+每个取值范围：
+
+分： 0-59
+
+小时： 0-23
+
+日： 1-31
+
+月： 1-12
+
+周： 0-7  0 7 都是周日
+
+例：
+
+[root@localhost tmp]# crontab -e
+52 07 * * * echo aaa > /tmp/test3.txt
+
+[root@localhost tmp]# date
+2016年 11月 11日 星期五 07:53:01 CST
+[root@localhost tmp]# cat test3.txt 
+aaa
+
+例： 特殊写法：
+
+#9,8,22 这几天0点0分，开始执行备份脚本
+
+1 3 9,18,22 * * /usr/bin/back.sh
+
+#每月9-18日 3:00 执行
+
+0 3 9,18,22 * * /usr/bin/back.sh
+
+#每五分钟。执行一次
+
+*/5 * * * *
+
+例：
+
+每天删除前五天的文件
+
+1 1 * * * find /home/log -type f -mtime +5 -exec rm {} \;
+
+========================================
+
+使用root身份给其它普通用户指定crontab:
+
+语法： crontab -u USERNAME -e/-l/-r
+
+[root@localhost tmp]# crontab -u yujiansong -e
+
+1 * * * * touch /tmp/a.txt
+
+查看：
+
+crontab -u yujiansong -l
+
+清空：
+
+crontab -u yujiansong -r
+
+清空root用户自己的：
+
+crontab -r
+
+==========================================
+
+anacron
+
+cron 用控制循环执行例行工作。如果我要设定机器每天早上8点
+进行备份服务。除非机器保证在8点这个时间不会关机，如果关机了
+，cron中的脚本，在下次开机将不会被执行。
+
+anacron 并没有取代cron的意思，anacron用于，机器重启后，会侦测停机期间，
+有没有cron没有执行的计划任务，如果有，会立即执行一下没有
+执行的任务。
+
+
+
+
+
+
+
+
+
+
