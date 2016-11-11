@@ -395,7 +395,7 @@ DATA TIME  HOSTNAME  APP(NAME) [PID]: MESSAGES
 练习： sshd + rsyslog (sshd 单独记录一个叫 sshd.log 的日志文件)；
 		
 		
-	 1). [root@localhost tmp]# vim /etc/ssh/ssh_config 
+	 1). [root@localhost tmp]# vim /etc/ssh/sshd_config 
 		 
 		 复制这行，并把原来的先注释，复制行的改为 local0
 		  #SyslogFacility AUTH
@@ -515,6 +515,10 @@ tcp        0      0 :::514                      :::*                        LIST
 
 2.配置 CLIENT 端(发送端)
 
+	[root@localhost tmp]# ssh 192.168.102.129
+	root@192.168.102.129's password: 
+	Last login: Sat Nov 12 00:30:43 2016 from 192.168.102.1
+	
 1). #vim /etc/rsyslog.conf  #在最后添加一行
 
 *.*  @@192.168.102.128:514
@@ -522,6 +526,9 @@ tcp        0      0 :::514                      :::*                        LIST
 2).重启服务
   [root@oratest ~]# /etc/init.d/rsyslog  restart
   
+	[root@localhost2 ~]# exit
+	logout
+	Connection to 192.168.102.129 closed.
 3).可以动态查看日志
 	[root@localhost ~]# tail -f /var/log/messages
 
