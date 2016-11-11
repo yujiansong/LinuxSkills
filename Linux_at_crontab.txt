@@ -153,11 +153,11 @@ aaa
 
 #9,8,22 这几天0点0分，开始执行备份脚本
 
-1 3 9,18,22 * * /usr/bin/back.sh
+0 0 9,18,22 * * /usr/bin/back.sh
 
 #每月9-18日 3:00 执行
 
-0 3 9,18,22 * * /usr/bin/back.sh
+0 3 9-18 * * /usr/bin/back.sh
 
 #每五分钟。执行一次
 
@@ -202,6 +202,347 @@ cron 用控制循环执行例行工作。如果我要设定机器每天早上8�
 anacron 并没有取代cron的意思，anacron用于，机器重启后，会侦测停机期间，
 有没有cron没有执行的计划任务，如果有，会立即执行一下没有
 执行的任务。
+
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+日志管理：
+
+[root@localhost tmp]# ls /var/log/
+
+
+常用的系统日志如下：
+
+核心启动日志： /var/log/dmesg
+
+系统报错或重启服务日志： /var/log/messages
+
+邮件系统日志： /var/log/maillog
+
+cron(定制任务日志)：/var/log/cron #计划日志执行成功与否，在这个文件中看
+
+vim/var/log/secure : #验证系统登录相关的日志
+
+
+文件 /var/log/wtmp 记录所有的登入和登出
+
+例：[root@localhost tmp]# last  #查看所有登录过的用户和IP
+
+清空记录： [root@localhost tmp]# > /var/log/wtmp 
+           [root@localhost tmp]# last	
+
+		   
+文件 /var/log/lastlog 记录每个用户最后的登入信息
+
+
+文件 /var/log/btmp 记录错误的登录尝试
+
+[root@localhost tmp]# lastb    #查看登陆错误的用户
+
+[root@localhost tmp]# ll /var/log/btmp
+-rw-------. 1 root root 1152 11月  4 06:56 /var/log/btmp
+
+
+
+例：
+	[root@localhost tmp]# ssh 192.168.102.128
+	
+	root@192.168.102.128's password:
+	
+	之后查询日志
+	[root@localhost tmp]# lastb
+	root     ssh:notty    192.168.102.128  Fri Nov 11 17:49 - 17:49  (00:00)    
+	root     ssh:notty    192.168.102.128  Fri Nov 11 17:49 - 17:49  (00:00)    
+	root     ssh:notty    192.168.102.128  Fri Nov 11 17:49 - 17:49  (00:00)  
+	
+=============================================
+
+2日志记录方式：先分类，然后每个类中在分级别
+主要7种日志分类（FACILITY）
+
+authpriv 	安全认证相关
+
+cron        at和cron定时相关
+
+daemon      后台进程相关
+
+kern		内核产生
+
+了解	lpr			打印系统产生 
+
+mail  		邮件系统相关
+
+syslog		日志服务本身
+
+了解	news		 新闻系统 (和BBS差不多,新闻组)
+
+了解	uucp		 uucp系统产生
+
+local0 到 local7 #共8个类型，系统保留的： 8个系统日志类型，给其他程序使用。
+				  或用户自定义使用
+
+8个日志级别：以下排列，由轻到重
+
+级别(PRIOROTY)
+
+debug    排错信息
+
+info	 正常信息
+
+notice	 稍微要注意的
+
+warn	 警告
+
+err(error)	错误
+
+crit (critical)  关键的错误
+
+alert			警报警惕
+
+emerge(emergency) 紧急，突发事件
+
+===============================
+
+rsyslog 服务管理以上分类
+
+日志服务 ：
+
+1).rhel5:
+   服务名称：syslog
+   配置文件：
+   vim /etc/syslog.conf
+
+2)RHEL6： rsyslog服务
+	配置文件：
+	vim /etc/rsyslog.conf
+	进入配置文件显示内容如下：
+	
+	例：
+	1. kern.* 内核类型的所有级别日志
+	
+	2. *info;mail.none;news.none;authpriv.none;cron.none:
+		由于 mail,news,authpriv,cron等类别产生的信息较多，
+		已经写入底下的数个档案中，因此在 /var/log/messages
+		里面就不记录这些项目。除此之外的其他信息都写入 /var/log/messages 中。
+		所以 messages文件很重要！
+	3. authpriv.* 认证相关的信息写入 /var/log/secure 档案；
+	
+	4. mail.* 邮件方面的信息则写入 /var/log/maillog 档案；
+	
+	5. cron.* 例行性工作排程均写入 /var/log/cron 档案；
+	
+	6. loacl7.* 将本机开机时应该显示到屏幕的信息写入到 /var/log/boot.log 档案中；
+	
+	======================================================
+	
+	/etc/rsyslog.conf 中日志输入规则；
+	
+	例：
+		“.”代表只要比后面的等级高的（包含该等级）日志都记录下来。
+		比如：“cron.info”代表cron服务产生的日志，只要日志等级大于等于info级别，就记录下来
+		
+		.=”代表只记录所需等级的日志，其他等级的都不记录。
+		比如：“*.=emerg”代表人和日志服务产生的日志，只要等级是
+		emerg等级就记录。
+		
+		“.!”代表不等于，也就是除了该等级的日志外，其他等级的
+		日志都记录。
+		
+		
+		举例
+			
+			cron.none 对于cron类型日志不记录任何信息
+			
+			cron.=err 对于cron类型日志只记录err级别的信息
+			
+			cron.err  对于cron类型日志只记录大于err级别的信息
+			
+			cron.!err 对于cron类型日志不记录err级别的日志，其它类型都记录
+			
+			
+记录日志的位置：
+		
+	1. 日志的相对路径： 通常放在 /var/log/ 中。
+
+	2.  存放在远程日志服务器上
+	
+	3.	有时日志会直接弹出在屏幕上，类似于wall命令。
+	
+	扩展：
+		wall 命令介绍：
+			wall -- send a message to everybody's terminal
+			
+			
+			[root@localhost tmp]# wall caonidaye
+			这样所有登录的Linux的终端用户都会收到这个信息
+			
+	服务重启和开机启动：
+	#service rsyslog restart
+	#chkconfig rsyslog on
+
+4.日志的存储格式(怎么看日志)
+
+DATA TIME  HOSTNAME  APP(NAME) [PID]: MESSAGES
+
+说明：
+	DATA TIME: 日志记录的日期和时间
+	
+	HOSTNAME APP(NAME) [PID] : 什么机器，什么程序(程序的PID)
+
+================================================
+
+练习： sshd + rsyslog (sshd 单独记录一个叫 sshd.log 的日志文件)；
+		
+		
+	 1). [root@localhost tmp]# vim /etc/ssh/ssh_config 
+		 
+		 复制这行，并把原来的先注释，复制行的改为 local0
+		  #SyslogFacility AUTH
+		   SyslogFacility local0
+		   
+	 2). 重启： # service sshd restart
+	 
+	 
+	 3). 修改配置文件： # vim/etc/rsyslog.conf  #在最后添加一行(写在local7下面)
+	 
+			# Save boot messages also to boot.log
+			local7.*                                                /var/log/boot.log
+			local0.*   												/var/log/sshd.log
+			
+	 4).  修改完配置文件一定要记得重启配置文件
+	 
+		  [root@localhost tmp]# service rsyslog restart
+		  
+			#这时没有这个文件 /var/log/sshd.log的，因为没有产生任何日志
+			
+			[root@localhost tmp]# ls /var/log/sshd.log
+			/var/log/sshd.log
+			
+			[root@localhost tmp]# cat !$
+			cat /var/log/sshd.log
+			
+			#可以重启服务产生日志再查寻
+			
+			[root@localhost tmp]# service sshd restart
+			停止 sshd：                                               [确定]
+			正在启动 sshd：                                           [确定]
+			
+			[root@localhost tmp]# cat /var/log/sshd.log
+			Nov 11 19:30:45 localhost sshd[2495]: Received signal 15; terminating.
+			Nov 11 19:30:45 localhost sshd[2572]: Server listening on 0.0.0.0 port 22.
+			Nov 11 19:30:45 localhost sshd[2572]: Server listening on :: port 22.
+			
+			
+		5).	防止日志被删除
+		
+			[root@localhost tmp]# chattr +a /var/log/sshd.log
+			[root@localhost tmp]# rm -rf !$
+			rm -rf /var/log/sshd.log
+			rm: 无法删除"/var/log/sshd.log": 不允许的操作
+				
+		6). 加入了这个属性后，你的 /var/log/messages 登录档从此就仅能被增加，而不能被删除，
+			直到 root 以 chattr -a /var/log/messages 取消这个a的参数后，才能被删除。
+			
+=============================================
+
+5.日志回滚：
+
+  logrotate (日志回滚过程： 创建新文件，改名旧文件)
+  
+  配置文件：
+  
+  #vim/etc/logrotate.conf
+  #vim/etc/logrotate.d/*
+  
+  [root@localhost log]# vim /etc/logrotate.conf 
+  
+	weekly   <== 预设每个礼拜对日志文档进行一次 rotate的工作
+	
+	rotate 4 <== 保留几个日志文档？ 预设是保留四个
+	
+	create   <== 回滚日志后，创建一个新的空文件来存储新的数据。
+  
+/var/log/wtmp {
+    monthly
+    create 0664 root utmp
+        minsize 1M
+	rotate 1
+}
+
+说明：
+
+/var/log/wtmp { <== 仅针对 /var/log/wtmp 所设定的参数}
+
+	monthly <==每个月一次。取代每周
+	
+	minsize 1M <== 档案容量一定要超过1M 后才进行 rotate(略过时间参数)
+	
+	create 0664 root utmp <== 设定新文件的权限，所有者，用户组
+	
+	rotate 1 <== 仅保留一个，亦即仅有一个 wtmp.1 保留而已。）
+	
+
+=============================================================
+
+配置远程服务器，实现日志集中管理：
+
+1).打开服务器端下面的两行注释
+[root@localhost ~]# vim /etc/rsyslog.conf
+
+# Provides TCP syslog reception
+#$ModLoad imtcp
+#$InputTCPServerRun 514
+	
+去掉注释改为
+
+# Provides TCP syslog reception
+$ModLoad imtcp
+$InputTCPServerRun 514
+
+2).在重启服务 
+
+[root@localhost ~]# /etc/init.d/rsyslog restart
+关闭系统日志记录器：                                      [确定]
+启动系统日志记录器：                                      [确定]
+
+3).查看是否启动成功
+[root@localhost ~]# netstat -anutp | grep 514
+tcp        0      0 0.0.0.0:514                 0.0.0.0:*                   LISTEN      1933/rsyslogd       
+tcp        0      0 :::514                      :::*                        LISTEN      1933/rsyslogd     
+
+
+
+2.配置 CLIENT 端(发送端)
+
+1). #vim /etc/rsyslog.conf  #在最后添加一行
+
+*.*  @@192.168.102.128:514
+
+2).重启服务
+  [root@oratest ~]# /etc/init.d/rsyslog  restart
+  
+3).可以动态查看日志
+	[root@localhost ~]# tail -f /var/log/messages
+
+
+
+	
+		
+		
+	
+
+
+
+
+
+
+
+	
+	
+
+
+
 
 
 
