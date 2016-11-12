@@ -1,0 +1,36 @@
+
++++++++++++++++++++++++++++++++++++++++
+
+学习环境
+
+1.iptables清空
+
+[root@localhost tmp]# iptables -F
+
+[root@localhost tmp]# /etc/init.d/iptables save
+iptables：将防火墙规则保存到 /etc/sysconfig/iptables：    [确定]
+
+2.selinux  关闭
+[root@localhost tmp]# vim /etc/selinux/config
+把SELINUX=enforcing先注释，改写成SELINUX=disabled
+
+#SELINUX=enforcing
+
+SELINUX=disabled
+
+3.重启
+	# reboot  #重启后生效
+	
+	重启之后查看是否关闭
+	[root@localhost ~]# getenforce
+     Disabled
+	
+4.配置好：静态IP
+
+	服务端：
+	
+	客户端：
+	
+  
+	
+
