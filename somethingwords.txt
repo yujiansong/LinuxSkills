@@ -11,3 +11,9 @@ attached  附加的，附属的; 依恋的; 爱慕的
 
 syntax   语法; 句法; 句法规则[分析]; 语构;
 
+command	 给出命令; 命令，指令;
+
+distributions 分配( distribution的名词复数 ); 分类; 分发; 分配物;
+
+substitution  替换; 代替; 代用; <化>取代（作用）;
+
