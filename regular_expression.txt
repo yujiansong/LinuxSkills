@@ -1,0 +1,33 @@
+
+++++++++++++++++++++++++++++++++++++++++++++
+
+[root@localhost tmp]# /sbin/ifconfig eth0 | grep 'inet addr' | sed 's/^.*addr://g' | sed 's/Bcast.*$//g'          
+192.168.80.128  
+
+[root@localhost tmp]# cat /etc/man.config | grep 'MAN' | sed 's/#.*$//g' | sed '/^$/d'
+
+==============================================
+
+[root@localhost Vbird]# cat /etc/passwd | awk '{FS=":"} $3 < 10 {print $1 "\t" $3}'
+root:x:0:0:root:/root:/bin/bash
+bin     1
+daemon  2
+adm     3
+lp      4
+sync    5
+shutdown        6
+halt    7
+mail    8
+
+====================================================
+
+[root@localhost Vbird]# cat /etc/passwd | awk 'BEGIN {FS=":"} $3 < 10 {print $1 "\t" $3}'
+root    0
+bin     1
+daemon  2
+adm     3
+lp      4
+sync    5
+shutdown        6
+halt    7
+mail    8
