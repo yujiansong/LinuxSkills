@@ -3,3 +3,27 @@
 
 PID号码查询：   echo $$
 
+=========================================
+
+alias 设置：
+
+临时生效
+
+alias grep='grep --color=auto'
+
+放在配置文件里
+
+[root@localhost Vbird]# vim /root/.bashrc 
+# .bashrc
+
+# User specific aliases and functions
+
+alias rm='rm -i'
+alias cp='cp -i'
+alias mv='mv -i'
+alias grep='grep --color=auto'
+
+再启动立即生效
+
+[root@localhost Vbird]# source /root/.bashrc
+
