@@ -34,3 +34,80 @@ mail    8
 
 ====================================================
 
+账号管理：
+
+[root@localhost tmp]# grep vbird1 /etc/passwd /etc/shadow /etc/group
+/etc/passwd:vbird1:x:552:564::/home/vbird1:/bin/bash
+/etc/shadow:vbird1:!!:17120:0:99999:7:::
+/etc/group:vbird1:x:564:
+
+============================================
+
+更该账户密码：
+
+[root@localhost tmp]# echo "123" | passwd --stdin vbird2
+更改用户 vbird2 的密码 。
+passwd： 所有的身份验证令牌已经成功更新。
+
+===========================================
+
+让vbird2每60天更改密码，10天密码失效的设置：
+
+vbird2 PS 2016-11-15 0 99999 7 -1 (密码已设置，使用 SHA512 加密。)
+[root@localhost tmp]# passwd -x 60 -i 10 vbird2
+调整用户密码老化数据vbird2。
+passwd: 操作成功
+[root@localhost tmp]# passwd -S vbird2
+vbird2 PS 2016-11-15 0 60 7 10 (密码已设置，使用 SHA512 加密。)
+
+===========================================
+
+让vbird2的账号失效。
+
+[root@localhost tmp]# passwd -l vbird2
+锁定用户 vbird2 的密码 。
+passwd: 操作成功
+[root@localhost tmp]# passwd -S vbird2
+vbird2 LK 2016-11-15 0 60 7 10 (密码已被锁定。)
+
+[root@localhost tmp]# grep vbird2 /etc/shadow
+vbird2:!!$6$LODnHSPn$AJ4S8cx/wDPRFmCFfKsrjL/Nvkm6jmD.ebHctVelHB4WO/89v5MRfnVd/U4OHTmOqau1Ub0tmSDC8TGeSnf/1.:17120:0:60:7:10::
+
+===========================================
+
+给账号解锁：
+
+[root@localhost tmp]# passwd -u vbird2
+解锁用户 vbird2 的密码 。
+passwd: 操作成功
+[root@localhost tmp]# grep vbird2 /etc/shadow
+vbird2:$6$LODnHSPn$AJ4S8cx/wDPRFmCFfKsrjL/Nvkm6jmD.ebHctVelHB4WO/89v5MRfnVd/U4OHTmOqau1Ub0tmSDC8TGeSnf/1.:17120:0:60:7:10::
+
+===========================================
+
+强制用户登录时更改他们的密码：
+
+[root@localhost tmp]# useradd agetest
+[root@localhost tmp]# echo "agetest" | passwd --stdin agetest
+更改用户 agetest 的密码 。
+passwd： 所有的身份验证令牌已经成功更新。
+[root@localhost tmp]# chage -d 0 agetest
+
+==============================================
+
+添加账户说明：
+
+[root@localhost tmp]# usermod -c "Vbird's test" vbird2
+[root@localhost tmp]# grep vbird2 /etc/passwd
+vbird2:x:700:558:Vbird's test:/home/vbird2:/bin/bash
+
+================================================
+删除账户：
+
+再执行 userdel -r username之前，先以 “find/ -user username" 查出整个系统内属于username的文件，然后在进行删除。
+
+================================================
+
+
+
+
