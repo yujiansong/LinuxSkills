@@ -3237,16 +3237,6 @@ Linux裁减
 
 
 
-
-
-
-
-
-
-
-
-
-
 bss: Block Started by Symbol
 
 readelf -h
@@ -3254,3 +3244,12 @@ readelf -S
 objdump -h
 
 ELF魔数、文件机器字节长度、数据存储方式、版本、运行平台、ABI版本、ELF重定位类型、硬件平台、硬件平台版本、入口地址、程序头入口和长度、段表的位置和长度、段的数量。
+
+
+
+
+
+
+
+
+
