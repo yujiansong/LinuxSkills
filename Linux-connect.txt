@@ -52,7 +52,67 @@ Windows 搜索工具 everything
 
 7).用SecureCRT远程工具连接时，IP和虚拟机的相同.
 
+
+
+
+注意要重启网络服务！！！
+service network restart
+
+
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+配置静态IP地址
+配置文件的路径为:：/etc/sysconfig/network-scripts/ifcfg-eth0 文件，使用vi编辑器将该配置文件
+
+[root@localhost ~]# cd /etc/sysconfig/network-scripts/
+[root@localhost network-scripts]# cat ifcfg-eth0 
+DEVICE=eth0
+BOOTPROTO=dhcp
+HWADDR=00:0c:29:d0:f7:47
+NM_CONTROLLED=yes
+ONBOOT=yes
+TYPE=Ethernet
+UUID="f2e81231-31b9-4c71-8ba1-67b5217ec397"
+DNS1=202.96.128.68
+IPV6INIT=no
+USERCTL=no
+PEERDNS=yes
+
+
++++++++++++++++++++++++++++++++++
+
+克隆虚拟机联网设置
+
+
+首先，打开/etc/udev/rules.d/70-persistent-net.rules内容如下面例子所示：
+
+
+记录下，eth1网卡的mac地址 00:0c:29:86:0f:4a
+
+接下来，打开/etc/sysconfig/network-scripts/ifcfg-eth0
+
+# vi /etc/sysconfig/network-scripts/ifcfg-eth0
+
+将 DEVICE="eth0"  改成  DEVICE="eth1"  ,
+将 HWADDR="00:0c:29:8f:89:97" 改成上面的mac地址  HWADDR="00:0c:29:86:0f:4a"
+
+最后，重启网络
+
+# service network restart
+或者
+
+# /etc/init.d/network restart
+
+正常了。
+
+
+
+
 ============================================================================================================
+
+
 * Host-Only:
 
 1).在虚拟机网络适配器选择Host-Only方式
@@ -114,3 +174,4 @@ RPM包安装的apache的启动方法：
 
 
 
+===============================================================================================
