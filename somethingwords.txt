@@ -17,3 +17,8 @@ distributions 分配( distribution的名词复数 ); 分类; 分发; 分配物;
 
 substitution  替换; 代替; 代用; <化>取代（作用）;
 
+cylinders  柱面
+
+partition  分割; 隔墙; 划分，分开; 隔离物;
+
+
