@@ -1,0 +1,47 @@
+
+=======================================================
+
+创建设备文件 ： 块文件 b 主设备号 66  次设备号 0 
+[root@localhost tmp]# mknod mydev b 66 0
+
+======================================================
+
+[root@localhost tmp]# tty
+/dev/pts/0
+
+[root@localhost tmp]# echo "hello" >> /dev/pts/1
+
+[root@localhost ~]# tty
+/dev/pts/1
+[root@localhost ~]# hello
+
+========================================================
+
+创建分区：
+
+[root@localhost tmp]# fdisk /dev/sda
+
+[root@localhost tmp]# cat /proc/partitions
+
+需要强制让内核找一次分区表
+[root@localhost tmp]# partprobe /dev/sda
+
+查看当前内核所支持的文件系统类型
+[root@localhost tmp]# cat /proc/filesystems 
+
+=========================================================
+
+查询或查看磁盘类型的相关属性
+[root@localhost ~]# blkid /dev/sda5
+/dev/sda5: UUID="525c2904-d5ae-4d07-8c0a-42c5c0b0f6bd" TYPE="ext4" 
+
+===========================================================
+
+[root@localhost tmp]# dd if=/dev/zero of=/var/swapfile2 seek=1023 bs=1M count=1
+记录了1+0 的读入
+记录了1+0 的写出
+1048576字节(1.0 MB)已复制，0.0676315 秒，15.5 MB/秒
+[root@localhost tmp]# ls -lh /var/swapfile2 
+-rw-r--r--. 1 root root 1.0G 11月 19 02:13 /var/swapfile2
+[root@localhost tmp]# du -sh /var/swapfile2
+1.0M    /var/swapfile2
