@@ -21,4 +21,13 @@ cylinders  柱面
 
 partition  分割; 隔墙; 划分，分开; 隔离物;
 
+protocol 协议
+
+MAC:  media access comtrol  介质访问控制 
+
+CSMA/CD（Carrier Sense Multiple Access with Collision Detection） 
+即带冲突检测的载波监听多路访问技术(载波监听多点接入/碰撞检测)。
+
+
+
 
