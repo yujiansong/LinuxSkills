@@ -1,0 +1,91 @@
+
+======================================================
+
+运行 --> dxdiag  查看数字签名
+
+查看系统版本方法：
+
+uname -m
+
+uname -a
+
+=====================================================
+
+安装CentOS 登陆后查看选包的情况
+
+yum grouplist
+
+安装未安装的包组
+
+yum groupinstall "Base" "Deleloptools"...
+
+====================================================
+setup配置DNS
+DNS 8.8.8.8
+    202.106.0.20
+	
+或配置文件，配置文件的路径为:：/etc/sysconfig/network-scripts/ifcfg-eth0 文件，使用vi编辑器将该配置文件
+
+ONBOOT=yes
+DNS1=8.8.8.8
+DNS2=202.106.0.20
+
+
+之后用 ifup eth0 启动网卡
+或 /etc/init.d/network restart
+或 service network restart
+
+==========================================================
+
+如果IP获取到了，但是SecureCRT没有连接上，需要注意几个地方：
+
+1，关闭防火墙  
+[root@bestjiansong ~]# /etc/init.d/iptables stop
+chkconfig iptables off
+
+2.查询 控制面板\网络和 Internet\网络连接 VMware Virtual Ethernet Adapter for VMnet8  IPV4
+
+3. ping Linux_IP 如果ping通的话，说明物理连接是好的
+
+4. telnet linux_IP 22 <== connected  通了(SSH服务通不通)
+==========================================================
+
+[root@bestjiansong ~]# rpm -qa openssh openssl
+openssl-1.0.0-20.el6_2.5.x86_64
+openssh-5.3p1-81.el6.x86_64
+
+openssh 是提供SSH服务的程序
+openssl 是为SSH提供连接加密的程序
+
+SSH服务 22端口
+
+SSH客户端 ： Windows平台的 SecureCRT ,xshell, putty
+
+SSH协议是 Secure Shell Protocol的简写
+
+SSH协议是专门为远程登录会话和其他网络服务提供的安全性协议
+
+telnet 23
+
+查看SSH服务
+[root@bestjiansong ~]# netstat -lntup | grep ssh
+tcp        0      0 0.0.0.0:22                  0.0.0.0:*                   LISTEN      1252/sshd           
+tcp        0      0 :::22                       :::*                        LISTEN      1252/sshd   
+
+查看进程；
+ps -ef
+
+查看端口：
+netstat -lntup
+
+[root@bestjiansong ~]# ps -ef | grep ssh
+root      1252     1  0 21:53 ?        00:00:00 /usr/sbin/sshd
+root      2088  1252  0 22:50 ?        00:00:00 sshd: root@pts/0 
+root      2281  2092  0 23:43 pts/0    00:00:00 grep ssh
+
+查看配置好的ip
+
+ifconfig
+
+ip add
+
