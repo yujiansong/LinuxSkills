@@ -1,0 +1,231 @@
+
+===============================================
+批量管理：
+
+SecureCRT 使用技巧：
+管理多台主机时可用：
+
+1. File / Connect 下选择 open in a tab
+
+2. view / Chat Window 在下面的白色窗口右击选择 Send Chat to all Sessions 
+
+3. 在这个窗口输入的命令所有打开的窗口都会同时执行
+
+
+================================================
+
+关机：
+
+halt == shutdown -h now
+
+[root@bestjiansong ~]# halt
+
+Broadcast message from root@bestjiansong
+        (/dev/pts/0) at 9:55 ...
+
+The system is going down for halt NOW!
+
+================================================
+
+VMware 克隆之后上不了网的问题
+
+1.vi /etc/sysconfig/network-scripts/ifcfg-eth0
+  注释或删除掉 HWADDR 和 UUID
+  
+2. >/ect/udev/rules.d/70-persistent-net.rules
+
+3. reboot 重启一下
+
+===============================================
+
+相对路径： 不从根 / 开始,而是从当前目录开始。
+
+绝对路径： 从根 / 开始的目录，就叫绝对路径。
+
+==============================================
+
+cat 特殊用法：
+
+[root@bestjiansong data]# cat > /data/jiansong.txt<<EOF
+> GOOD LUCK! BEST JIANSONG!
+> EOF
+
+    增加多行内容
+[root@bestjiansong data]# cat >> /data/jiansong.txt <<EOF
+> you can be the best!
+> EOF
+ 
+	EOF 要成对出现，EOF可以被任意成对内容替换
+	箭头的方向就是数据的流向
+	
+[root@bestjiansong data]# echo "
+> sunshine
+> nice
+> " >> /data/jiansong.txt
+[root@bestjiansong data]# cat jiansong.txt 
+GOOD LUCK! BEST JIANSONG!
+you can be the best!
+pretty boy!
+
+sunshine
+nice
+
+=============================================================
+
+箭头的方向就是数据的流向
+
+> 或 1> 会清除文件里以前的数据，增加行数据
+
+> 或 1>> 文件结尾增加内容，不会删除已有的数据
+
+<0  输入重定向
+
+<<0 追加输入重定向
+
+2>  错误重定向
+
+2>>  错误追加重定向
+
+1.标准输入(stdin): 代码为0， 使用 < 或 << 数据流从右向左
+
+2.标准输出 (stdout): 代码为1， 使用 > 或 >> 数据流从左向右
+
+3.错误输出 (stderr): 代码为2， 使用 2> 或 2>> 
+
+
+如果输入正确，则进入 jiansong.txt ,输入错误则进入 error.txt
+[root@bestjiansong data]# echo 111 1> jiansong.txt 2> error.txt
+
+[root@bestjiansong data]# ech 111 1> jiansong.txt 2> error.txt 
+[root@bestjiansong data]# cat error.txt 
+-bash: ech: command not found
+
+=================================================================
+
+拷贝目录：
+
+cp -a    相当于 -pdr
+
+或 cp -r
+
+-r : 递归，用于复制目录
+-p : 保持属性
+-a : 相当于 -pdr 
+[root@bestjiansong data]# cp -a /etc/ /tmp/
+
+
+=====================================================================
+
+查找文件
+find :
+
+[root@bestjiansong data]# find /root/data/ -type f
+/root/data/jiansong.txt
+
+删除文件
+[root@bestjiansong data]# find /root/data/ -type f -exec rm -f {} \;
+
+或
+[root@bestjiansong data]# find /root/data/ -type f | xargs rm -f
+
+指定名字查找：
+
+[root@bestjiansong data]# find /root/data/ -name "laosongsan.txt"
+/root/data/laosongsan.txt
+
+先按文件类型查找，再按名字查找
+[root@bestjiansong data]# find /root/data/ -type f -name "laosongsan.txt" 
+/root/data/laosongsan.txt
+
+除了 jiansong.txt 这个文件，剩下的都删掉
+[root@bestjiansong data]# find /root/data/ -type f ! -name "jiansong.txt" | xargs rm -f
+[root@bestjiansong data]# ls
+jiansong.txt
+
+========================================================
+
+head 取文件的前 n 行， 如果不接参数取默认的前 10 行 
+ head -n 3 简写为 head -3
+
+[root@bestjiansong ~]# head -2 test.txt 
+test
+jiansong
+
++++++++++++++++++++++++++++++++++++++
+
+*****grep
+
+grep == 过滤器，把想要的和不想要的分离开
+
+[root@bestjiansong ~]# grep "jiansong" test.txt 
+jiansong
+
+
+-v 是排除的意思
+
+(这个更专业)
+[root@bestjiansong ~]# grep -v "jiansong" test.txt 
+test
+laosongsan
+wanglaoer
+
+(这个需要经过管道，速度可能会慢)
+[root@bestjiansong ~]# cat test.txt | grep -v "laosongsan"
+test
+jiansong
+wanglaoer
+
+*****sed
+过滤
+[root@bestjiansong ~]# sed -n '/laosongsan/p' test.txt     (-n 取消默认输出 p打印)
+laosongsan
+
+等同于
+
+[root@bestjiansong ~]# grep "laosongsan" test.txt 
+laosongsan
+
+删除 laosongsan 
+[root@bestjiansong ~]# sed '/laosongsan/d' test.txt   (d 删除)
+test
+jiansong
+wanglaoer
+
+sed用法：
+
+过滤：  sed -n '/过滤的命令/处理的命令'  文件 
+  
+        -n 取消sed的默认输出
+		-i 改变文件内容
+		
+		处理的命令： p  print打印
+					 d  delete删除
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
