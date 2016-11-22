@@ -200,6 +200,254 @@ sed用法：
 		
 		处理的命令： p  print打印
 					 d  delete删除
+					 
+===========================================================================
+
+yum Linux 包管理器  yum帮助解决依赖问题
+
+	例子： yum install tree(包名) -y  
+		   下载 tree 然后调用rpm 安装 tree
+		    如果需要依赖包，帮你下载，帮你提前安装。
+
+rpm -ivh(安装，显示，输出，人类可读)
+	例子： rpm -ivh 包名.rpm  (提前下载好)
+	
+	最大问题： 依赖问题不好解决
+	
+====================================================
+
+tree-rpm 命令
+
+[root@bestjiansong ~]# rpm -qa tree     (-q  query  -a all)
+tree-1.5.3-3.el6.x86_64
+
+tree 显示目录树结构
+
+[root@bestjiansong ~]# tree /root/
+/root/
+├── anaconda-ks.cfg
+├── data
+│   └── jiansong.txt
+├── install.log
+├── install.log.syslog
+├── Linux.txt
+└── test.txt
+
+=====================================================
+
+别名：
+
+如果 tmp 下也有 test.txt 文件 ， 复制文件方法如下
+
+[root@bestjiansong ~]# /bin/cp /mnt/test.txt /tmp/
+[root@bestjiansong ~]# \cp /mnt/test.txt /tmp/
+
+alias cp='cp -i'  -i 确认
+
+
+查询别名
+
+[root@bestjiansong ~]# alias
+alias cp='cp -i'
+alias l.='ls -d .* --color=auto'
+alias ll='ls -l --color=auto'
+alias ls='ls --color=auto'
+alias mv='mv -i'
+alias rm='rm -i'
+alias which='alias | /usr/bin/which --tty-only --read-alias --show-dot --show-tilde'
+
+取消别名
+
+[root@bestjiansong ~]# unalias cp
+
+[root@bestjiansong ~]# alias
+alias l.='ls -d .* --color=auto'
+alias ll='ls -l --color=auto'
+alias ls='ls --color=auto'
+alias mv='mv -i'
+alias rm='rm -i'
+alias which='alias | /usr/bin/which --tty-only --read-alias --show-dot --show-tilde'
+
+
+取消别名后在复制不会提醒覆盖
+
+[root@bestjiansong ~]# cp /mnt/test.txt  /tmp/
+
+如果加 -i 还会提醒
+
+[root@bestjiansong ~]# cp -i /mnt/test.txt /tmp/
+cp: overwrite `/tmp/test.txt'? 
+
+查看及定义别名：
+
+[root@bestjiansong ~]# alias jiansong='echo i am yu jian song ,the best boy.'
+
+[root@bestjiansong ~]# alias
+alias cp='cp -i'
+alias jiansong='echo i am yu jian song ,the best boy.'
+alias l.='ls -d .* --color=auto'
+alias ll='ls -l --color=auto'
+alias ls='ls --color=auto'
+alias mv='mv -i'
+alias rm='rm -i'
+alias which='alias | /usr/bin/which --tty-only --read-alias --show-dot --show-tilde'
+
+别名生效的位置：(root 用户)
+[root@bestjiansong ~]# grep alias /root/.bashrc
+# User specific aliases and functions
+alias rm='rm -i'
+alias cp='cp -i'
+alias mv='mv -i'
+
+所有用户都生效 /etc/bashrc 或 /etc/profile 定义
+
+生效   source /etc/profiles
+
+===============================================================
+
+~  用户的家目录
+
+seq 命令：
+
+seq == sequence 序列
+
+[root@bestjiansong ~]# seq 6
+1
+2
+3
+4
+5
+6
+
+[root@bestjiansong ~]# seq 2 6
+2
+3
+4
+5
+6
+
+奇数
+[root@bestjiansong ~]# seq 1 2 10
+1
+3
+5
+7
+9
+
+偶数
+[root@bestjiansong ~]# seq 2 2 10
+2
+4
+6
+8
+10
+
+
+[root@bestjiansong ~]# seq --help
+Usage: seq [OPTION]... LAST
+  or:  seq [OPTION]... FIRST LAST
+  or:  seq [OPTION]... FIRST INCREMENT LAST
+
+
+指定分隔符
+seq -s
+[root@bestjiansong ~]# seq -s "=" 5
+1=2=3=4=5
+
+=================================================
+
+tail 命令：
+		-f  跟踪一个文件尾部的时时变化
+[root@bestjiansong ~]# tail test.txt 
+91
+92
+93
+94
+95
+96
+97
+98
+99
+100
+
+
+[root@bestjiansong ~]# tail -3 test.txt 
+98
+99
+100
+
+查看第20到30行的内容(test.txt 共有100行)
+[root@bestjiansong ~]# head -30 test.txt | tail -11
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+
+====================================================================
+
+或者
+(简单高效)
+[root@bestjiansong ~]# sed -n '20,30p' test.txt 
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+
+=======================================================================
+
+awk 
+   过滤内容 (取列)
+   
+   awk  -F "分隔符号" '{print $1}' 文件   <==  $1 第一列 $2 第二列 $NF 最后一列
+   
+   
+   [root@bestjiansong ~]# awk -F ":" '{print $1}' /etc/passwd
+
+可以加空格 " "
+[root@bestjiansong ~]# awk -F ":" '{print $1 " " $2 " " $3}' /etc/passwd
+root x 0
+bin x 1
+daemon x 2
+adm x 3
+
+倒数第一列
+[root@bestjiansong ~]# awk -F ":" '{print $NF}' /etc/passwd
+
+倒数第二列
+[root@bestjiansong ~]# awk -F ":" '{print $(NF-1)}' /etc/passwd
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
