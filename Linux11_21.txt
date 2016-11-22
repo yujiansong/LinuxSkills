@@ -35,6 +35,7 @@ DNS2=202.106.0.20
 或 /etc/init.d/network restart
 或 service network restart
 
+！！！如果、etc/init.d/network restart 启动后， ifconfig 没有显示eth0的IP，则需要把Windows 本地服务进程中的 VMware 相关的服务全部启动
 ==========================================================
 
 如果IP获取到了，但是SecureCRT没有连接上，需要注意几个地方：
@@ -89,3 +90,73 @@ ifconfig
 
 ip add
 
+==================================================
+
+SSH服务连通性检查：
+
+1.物理链路
+ping server_ip
+
+不通的话： 1.物理线路 2.服务器防火墙
+
+2.服务是否正常
+telnet ip port
+
+telnet 192.168.150.130 22
+
+windows 安装telnet客户端 ： 控制面板\程序 启用或关闭Windows功能 选择telnet客户端
+
+connected是通的标志
+[root@bestjiansong ~]# telnet 192.168.150.130 22
+Trying 192.168.150.130...
+Connected to 192.168.150.130.
+Escape character is '^]'.
+SSH-2.0-OpenSSH_5.3
+
+Windows cmd下在 telnet 192.168.150.130 22  查看一下
+
+
+不通的话： 1. Linux服务器防火墙
+           2. SSH服务是否开启
+		   3. 客户端和服务端是不是一个网段
+		   
+关闭防火墙的方法： 
+/etc/init.d/iptables stop    最好连续执行两遍
+
+/etc/init.d/iptables stop == service iptables stop
+
+============================================================
+
+Windows Linux 互传文件
+
+ftp/winscp/http/rz-sz
+
+安装 rz-sz :
+
+yum install lrzsz -y 
+
+安装之后可以查看一下：
+
+[root@bestjiansong ~]# rpm -qa lrzsz
+lrzsz-0.12.20-27.1.el6.x86_64
+
+
+其它安装的软件
+
+yum install telnet lrzsz nmap dos2unix -y 
+
+
+传输文件 (选择要上传的文件，不能是目录)
+[root@bestjiansong ~]# rz -y
+
+下载文件
+sz 文件 回车，下载的路径CRT指定的路径
+
+-y  覆盖
+[root@bestjiansong ~]# sz -y Linux.txt 
+rz
+Starting zmodem transfer.  Press Ctrl+C to cancel.
+  100%      35 KB   35 KB/s 00:00:01       0 Errors
+  
+  
+下载完成后 Options/Session options/ x/y/zmodem 把下载路径拷到网址里
