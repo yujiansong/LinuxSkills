@@ -28,6 +28,13 @@ MAC:  media access comtrol  介质访问控制
 CSMA/CD（Carrier Sense Multiple Access with Collision Detection） 
 即带冲突检测的载波监听多路访问技术(载波监听多点接入/碰撞检测)。
 
+enforcing  执行; 强制执行; 强迫; 实施( enforce的现在分词 );
+
+permissive  放任的; 容许的; 宽大的; 自由的;
+
+disabled  使无效
+
+multiuser 多用户;
 
 
 
