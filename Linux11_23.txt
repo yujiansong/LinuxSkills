@@ -1,0 +1,476 @@
+
+=====================================================
+
+***** find, xargs. awk, sed, grep, vi, vim, seq
+
+常用命令：
+ 
+ls
+
+cd
+
+cp
+
+mv
+
+mkdir
+
+touch
+
+echo
+
+cat
+
+find
+
+sed
+
+awk
+
+grep
+
+pwd
+
+head
+
+rm
+
+tail
+
+alias
+
+unalias
+
+tree
+
+yum
+
+rpm
+
+seq
+
+xargs
+
+rmdir
+
+man
+
+help
+
+vi
+
+vim
+
+============================================
+
+[root@bestjiansong ~]# echo "wanglaoer" > wanglaoer.txt
+[root@bestjiansong ~]# cat wanglaoer.txt 
+wanglaoer
+
+有清除文件的作用
+[root@bestjiansong ~]# > wanglaoer.txt 
+[root@bestjiansong ~]# cat wanglaoer.txt 
+
+
+[root@bestjiansong ~]# echo {1..10}
+1 2 3 4 5 6 7 8 9 10
+[root@bestjiansong ~]# echo {a..z}
+a b c d e f g h i j k l m n o p q r s t u v w x y z
+
+
+mkdir stu{001..100}
+
+history使用:
+
+  347  echo {1..10}
+  348  echo {a..z}
+  349  echo stu{001..100}
+  350  history
+[root@bestjiansong ~]# 
+[root@bestjiansong ~]# !347
+echo {1..10}
+1 2 3 4 5 6 7 8 9 10
+
+============================================================
+
+8.1
+
+查看内核版本
+[root@bestjiansong ~]# uname -r
+2.6.32-279.el6.x86_64          版本
+[root@bestjiansong ~]# uname -m
+x86_64                         内核
+
+查看主机名
+[root@bestjiansong ~]# hostname
+bestjiansong
+
+============================================================
+
+添加用户：
+[root@bestjiansong ~]# useradd yujiansong
+或
+[root@bestjiansong ~]# adduser yujiansong
+adduser: user 'yujiansong' already exists
+
+密码设置：
+[root@bestjiansong ~]# passwd yujiansong
+Changing password for user yujiansong.
+New password: 
+BAD PASSWORD: it is too simplistic/systematic
+BAD PASSWORD: is too simple
+Retype new password: 
+passwd: all authentication tokens updated successfully.
+
+普通用户 $ 提示符
+[yujiansong@bestjiansong ~]$ 
+
+超级管理员 # 提示符
+[root@bestjiansong ~]# 
+
+查看当前用户：
+[yujiansong@bestjiansong ~]$ whoami
+yujiansong
+
+环境变量
+[yujiansong@bestjiansong ~]$ echo $PS1
+[\u@\h \W]\$
+
+用户环境变量
+[yujiansong@bestjiansong ~]$ env | grep yujiansong
+USER=yujiansong
+MAIL=/var/spool/mail/yujiansong
+PATH=/usr/local/bin:/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/sbin:/home/yujiansong/bin
+PWD=/home/yujiansong
+HOME=/home/yujiansong
+LOGNAME=yujiansong
+
+切换用户：(加 - 可以切换用户变量)
+[yujiansong@bestjiansong ~]$ su - root
+Password:
+
+[root@bestjiansong ~]# whoami
+root
+
+[root@bestjiansong ~]# env | grep root
+USER=root
+MAIL=/var/spool/mail/root
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin:/root/bin
+PWD=/root
+HOME=/root
+LOGNAME=root
+
+===================================================================================
+
+关闭SELinux (Security-Enhanced Linux): 
+
+[root@bestjiansong ~]# cat /etc/selinux/config 
+
+# This file controls the state of SELinux on the system.
+# SELINUX= can take one of these three values:
+#     enforcing - SELinux security policy is enforced.
+#     permissive - SELinux prints warnings instead of enforcing.
+#     disabled - No SELinux policy is loaded.
+SELINUX=enforcing
+# SELINUXTYPE= can take one of these two values:
+#     targeted - Targeted processes are protected,
+#     mls - Multi Level Security protection.
+SELINUXTYPE=targeted 
+
+1.先备份
+[root@bestjiansong ~]# cp /etc/selinux/config  /etc/selinux/config.yujiansong.20161123
+
+2.再修改
+[root@bestjiansong ~]# sed -i 's#SELINUX=enforcing#SELINUX=disabled#g' /etc/selinux/config 
+
+3.检查修改情况
+[root@bestjiansong ~]# grep =disabled /etc/selinux/config
+SELINUX=disabled
+
+4.查看是否生效
+[root@bestjiansong ~]# getenforce
+Enforcing
+
+5.设置SELinux状态
+[root@bestjiansong ~]# setenforce
+usage:  setenforce [ Enforcing | Permissive | 1 | 0 ]
+
+1.启用  0.警告，不启用
+[root@bestjiansong ~]# setenforce 0
+
+检查SELinux 状态
+[root@bestjiansong ~]# getenforce
+Permissive
+
+总结： 1.希望永久生效，改配置文件/etc/selinux/config
+	   2.临时生效  setenforce 0
+	   3.即永久生效又临时生效 两个文件都需要改
+
+
+==============================================================
+
+设置运行级别 /etc/inittab 
+
+run level :
+
+[root@bestjiansong ~]# tail /etc/inittab 
+# Default runlevel. The runlevels used are:
+#   0 - halt (Do NOT set initdefault to this)
+#   1 - Single user mode
+#   2 - Multiuser, without NFS (The same as 3, if you do not have networking)
+#   3 - Full multiuser mode
+#   4 - unused
+#   5 - X11
+#   6 - reboot (Do NOT set initdefault to this)
+# 
+id:3:initdefault:
+
+
+查看当前运行级别
+[root@bestjiansong ~]# runlevel
+N 3
+
+切换运行级别 init 
+[root@bestjiansong ~]# init 6    (重启)
+
+================================================
+
+精简开机系统启动
+
+Windows ： msconfig
+
+1.重要的开机自启动服务
+
+sshd   远程连接Linux服务器时需要使用这个服务程序
+
+rsyslog  系统日志文件
+
+network   
+
+crond   定时任务
+
+sysstat  监测系统性能及效率的一组工具
+
+++++++++++++++++++++++++++++++++++++++++
+
+第一种方法
+setup  4System services 
+
+第二种方法
+ntsysv  直接出现System services窗口
+
+第三种方法
+[root@bestjiansong ~]# chkconfig --list
+
+1.查找 运行级别3为on 的运行服务
+[root@bestjiansong ~]# chkconfig --list | grep 3:on
+abrt-ccpp       0:off   1:off   2:off   3:on    4:off   5:on    6:off
+abrt-oops       0:off   1:off   2:off   3:on    4:off   5:on    6:off
+abrtd           0:off   1:off   2:off   3:on    4:off   5:on    6:off
+acpid           0:off   1:off   2:on    3:on    4:on    5:on    6:off
+atd             0:off   1:off   2:off   3:on    4:on    5:on    6:off
+auditd          0:off   1:off   2:on    3:on    4:on    5:on    6:off
+cpuspeed        0:off   1:on    2:on    3:on    4:on    5:on    6:off
+crond           0:off   1:off   2:on    3:on    4:on    5:on    6:off
+haldaemon       0:off   1:off   2:off   3:on    4:on    5:on    6:off
+ip6tables       0:off   1:off   2:on    3:on    4:on    5:on    6:off
+iptables        0:off   1:off   2:on    3:on    4:on    5:on    6:off
+irqbalance      0:off   1:off   2:off   3:on    4:on    5:on    6:off
+kdump           0:off   1:off   2:off   3:on    4:on    5:on    6:off
+lvm2-monitor    0:off   1:on    2:on    3:on    4:on    5:on    6:off
+mdmonitor       0:off   1:off   2:on    3:on    4:on    5:on    6:off
+messagebus      0:off   1:off   2:on    3:on    4:on    5:on    6:off
+netfs           0:off   1:off   2:off   3:on    4:on    5:on    6:off
+network         0:off   1:off   2:on    3:on    4:on    5:on    6:off
+postfix         0:off   1:off   2:on    3:on    4:on    5:on    6:off
+rsyslog         0:off   1:off   2:on    3:on    4:on    5:on    6:off
+sshd            0:off   1:off   2:on    3:on    4:on    5:on    6:off
+sysstat         0:off   1:on    2:on    3:on    4:on    5:on    6:off
+udev-post       0:off   1:on    2:on    3:on    4:on    5:on    6:off
+
+查看atd
+[root@bestjiansong ~]# chkconfig --list atd
+atd             0:off   1:off   2:off   3:on    4:on    5:on    6:off
+
+把atd关掉
+[root@bestjiansong ~]# chkconfig --level 3 atd off
+
+[root@bestjiansong ~]# chkconfig --list atd
+atd             0:off   1:off   2:off   3:off   4:on    5:on    6:off
+
+
+[root@bestjiansong ~]# chkconfig --level 2345 atd off
+[root@bestjiansong ~]# chkconfig --list atd
+atd             0:off   1:off   2:off   3:off   4:off   5:off   6:off
+
+
+排除sshd|network|rsyslog|crond|sysstat
+[root@bestjiansong ~]# chkconfig --list | awk '{print $1}'| grep -Ev "sshd|network|rsyslog|crond|sysstat"
+
+关闭除了这5个以外的服务
+[root@bestjiansong ~]# for name in `chkconfig --list | grep 3:on | awk '{print $1}'| grep -Ev "sshd|network|rsyslog|crond|sysstat"`;do chkconfig $name off; done
+查询
+[root@bestjiansong ~]# chkconfig --list | grep 3:on
+crond           0:off   1:off   2:on    3:on    4:on    5:on    6:off
+network         0:off   1:off   2:on    3:on    4:on    5:on    6:off
+rsyslog         0:off   1:off   2:on    3:on    4:on    5:on    6:off
+sshd            0:off   1:off   2:on    3:on    4:on    5:on    6:off
+sysstat         0:off   1:on    2:on    3:on    4:on    5:on    6:off
+
+
+或者
+[root@bestjiansong ~]# chkconfig --list |grep 3:on| awk '{print $1}'| grep -Ev "sshd|network|rsyslog|crond|sysstat"
+atd
+ntpd
+
+[root@bestjiansong ~]# chkconfig --list |grep 3:on| awk '{print $1}'| grep -Ev "sshd|network|rsyslog|crond|sysstat" | sed -r 's#(.*)#chkconfig \1 off#g'
+chkconfig atd off
+chkconfig ntpd off
+
+
+[root@bestjiansong ~]# chkconfig --list |grep 3:on| awk '{print $1}'| grep -Ev "sshd|network|rsyslog|crond|sysstat" | sed -r 's#(.*)#chkconfig \1 off#g' | bash
+
+[root@bestjiansong ~]# chkconfig --list | grep 3:on
+crond           0:off   1:off   2:on    3:on    4:on    5:on    6:off
+network         0:off   1:off   2:on    3:on    4:on    5:on    6:off
+rsyslog         0:off   1:off   2:on    3:on    4:on    5:on    6:off
+sshd            0:off   1:off   2:on    3:on    4:on    5:on    6:off
+sysstat         0:off   1:on    2:on    3:on    4:on    5:on    6:off
+
+
+
+[root@bestjiansong ~]# echo wanglaoer > test.txt 
+[root@bestjiansong ~]# cat test.txt 
+wanglaoer
+
+[root@bestjiansong ~]# sed 's#\(.*\)#I am \1#g' test.txt 
+I am wanglaoer
+或者
+[root@bestjiansong ~]# sed -r 's#(.*)#I am \1#g' test.txt   
+I am wanglaoer
+
+
+或者
+
+[root@bestjiansong ~]# chkconfig --list |grep 3:on| awk '{print $1}'| grep -Ev "sshd|network|rsyslog|crond|sysstat" | awk '{print $1}'
+atd
+ntpd
+
+[root@bestjiansong ~]# chkconfig --list |grep 3:on| awk '{print $1}'| grep -Ev "sshd|network|rsyslog|crond|sysstat" | awk '{print "chkconfig" $1 "off"}'
+chkconfigatdoff
+chkconfigntpdoff
+
+[root@bestjiansong ~]# chkconfig --list |grep 3:on| awk '{print $1}'| grep -Ev "sshd|network|rsyslog|crond|sysstat" | awk '{print "chkconfig "$1" off"}' | bash 
+
+
+========================================================
+
+关闭 iptables  防火墙
+
+查看防火墙
+[root@bestjiansong ~]# iptables -L -n
+Chain INPUT (policy ACCEPT)
+target     prot opt source               destination         
+ACCEPT     all  --  0.0.0.0/0            0.0.0.0/0           state RELATED,ESTABLISHED 
+ACCEPT     icmp --  0.0.0.0/0            0.0.0.0/0           
+ACCEPT     all  --  0.0.0.0/0            0.0.0.0/0           
+ACCEPT     tcp  --  0.0.0.0/0            0.0.0.0/0           state NEW tcp dpt:22 
+REJECT     all  --  0.0.0.0/0            0.0.0.0/0           reject-with icmp-host-prohibited 
+
+Chain FORWARD (policy ACCEPT)
+target     prot opt source               destination         
+REJECT     all  --  0.0.0.0/0            0.0.0.0/0           reject-with icmp-host-prohibited 
+
+Chain OUTPUT (policy ACCEPT)
+target     prot opt source               destination   
+
+
+关闭防火墙
+[root@bestjiansong ~]# /etc/init.d/iptables stop
+iptables: Flushing firewall rules:                         [  OK  ]
+iptables: Setting chains to policy ACCEPT: filter          [  OK  ]
+iptables: Unloading modules:                               [  OK  ]
+
+[root@bestjiansong ~]# /etc/init.d/iptables status
+iptables: Firewall is not running.
+
+[root@bestjiansong ~]# chkconfig iptables off
+
+====================================================
+
+chkconfig 设置开机自启动服务
+
+usage:   chkconfig [--list] [--type <type>] [name]
+         chkconfig --add <name>
+         chkconfig --del <name>
+         chkconfig --override <name>
+         chkconfig [--level <levels>] [--type <type>] <name> <on|off|reset|resetpriorities>
+		 
+====================================================
+
+查找行
+[root@bestjiansong ~]# cat wanglaoer.txt 
+ddd fff
+2ggg hhh
+3iii jjj
+[root@bestjiansong ~]# sed -n '2p' wanglaoer.txt 
+2ggg hhh
+[root@bestjiansong ~]# sed -n '1,2p' wanglaoer.txt 
+ddd fff
+2ggg hhh
+
+替换内容(没有修改文件内容)
+[root@bestjiansong ~]# sed 's#ddd#wts#g' wanglaoer.txt 
+wts fff
+2ggg hhh
+3iii jjj
+
+修改文件内容 -i 
+[root@bestjiansong ~]# cat wanglaoer.txt 
+ddd fff
+2ggg hhh
+3iii jjj
+
+[root@bestjiansong ~]# sed -i 's#ddd#wts#g' wanglaoer.txt 
+
+[root@bestjiansong ~]# cat wanglaoer.txt 
+wts fff
+2ggg hhh
+3iii jjj
+
+[root@bestjiansong ~]# sed  -i 's#(可以用正则匹配)#\1#g' wanglaoer.txt
+把前面正则匹配括号内的结果， 用在后面用 \1 取出来操作
+[root@bestjiansong ~]# cat wanglaoer.txt 
+wts fff
+2ggg hhh
+3iii jjj
+
+[root@bestjiansong ~]# sed -r 's#(.*) fff#\1#g' wanglaoer.txt 
+wts
+2ggg hhh
+3iii jjj
+
+[root@bestjiansong ~]# sed -r 's#(.*)ff#\1#g' wanglaoer.txt  
+wts f
+2ggg hhh
+3iii jjj
+
+[root@bestjiansong ~]# sed -r 's#(.*)f#\1#g' wanglaoer.txt  
+wts ff
+2ggg hhh
+3iii jjj
+
+[root@bestjiansong ~]# sed -r 's#(.*)#\1#g' wanglaoer.txt  
+wts fff
+2ggg hhh
+3iii jjj
+
+
+
+
+
+
+
+
+
+
