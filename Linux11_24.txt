@@ -1,0 +1,250 @@
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+优化Linux 远程连接
+
+
+
+122 #UseDNS yes  改成 #UseDNS no
+
+
+
+***** 两个文件进行比较的方法
+两个文件进行对比，备份前和备份后的对比。
+[root@bestjiansong ssh]# diff sshd_config.yujiansong.20161124 sshd_config
+13c13
+< #Port 22
+---
+> Port 52113
+15c15
+< #ListenAddress 0.0.0.0
+---
+> ListenAddress 192.168.150.130
+42c42
+< #PermitRootLogin yes
+---
+> PermitRootLogin no
+122c122
+< #UseDNS yes
+---
+> UseDNS no
+
+另一种方法：
+
+[root@bestjiansong ssh]# vimdiff sshd_config.yujiansong.20161124 sshd_config
+
+
+=========================================
+
+安全的远程SSH连接方法
+
+Port 52113 
+
+PermitRootLogin no 
+
+PermitEmptyPasswords no 
+
+UseDNS no 
+
+GSSAPIAuthentication no 
+
+ListenAddress 192.168.150.130   企业仅指定监听本机内网IP地址
+
+==========================================
+
+备份还原
+[root@bestjiansong ssh]# cp sshd_config.yujiansong.20161124 sshd_config
+cp: overwrite `sshd_config'? y
+
+
+可以集中到一起放进配置文件里
+
+#####by yujiansong #20161124##
+Port 52113
+PermitRootLogin no
+PermitEmptyPasswords no
+UseDNS no
+GSSAPIAuthentication no
+ListenAddress 192.168.150.130
+#####by yujiansong #20161124##
+
+之后重启服务才能生效
+[root@bestjiansong ssh]# /etc/init.d/sshd restart
+Stopping sshd:                                             [  OK  ]
+Starting sshd:                                             [  OK  ]
+
+推荐使用 reload,不影响使用用户
+[root@bestjiansong ssh]# /etc/init.d/sshd reload
+Reloading sshd:                                            [  OK  ]
+
+=================================================================
+
+diff 比较，接两个文件
+
+vimdiff 高级比较，高亮显示两个文件内容区别
+
+=================================================================
+sudo 命令
+
+visudo == vi /etc/sudoers
+(这个更好)
+
+
+
+给用户添加权限
+[root@bestjiansong ~]# visudo
+...
+	 93 ##      user    MACHINE=COMMANDS
+     94 ##
+     95 ## The COMMANDS section may have other options added to it.
+     96 ##
+     97 ## Allow root to run any commands anywhere
+     98 root    ALL=(ALL)       ALL
+     99 yujiansong      ALL=(ALL)       ALL
+	 
+
+给yujiansong 添加权限后，添加用户
+[yujiansong@bestjiansong ~]$ sudo useradd songsan
+
+We trust you have received the usual lecture from the local System
+Administrator. It usually boils down to these three things:
+
+    #1) Respect the privacy of others.
+    #2) Think before you type.
+    #3) With great power comes great responsibility.
+
+[sudo] password for yujiansong: 
+
+
+[yujiansong@bestjiansong ~]$ tail -l /etc/passwd
+vcsa:x:69:69:virtual console memory owner:/dev:/sbin/nologin
+abrt:x:173:173::/etc/abrt:/sbin/nologin
+haldaemon:x:68:68:HAL daemon:/:/sbin/nologin
+ntp:x:38:38::/etc/ntp:/sbin/nologin
+saslauth:x:499:76:"Saslauthd user":/var/empty/saslauth:/sbin/nologin
+postfix:x:89:89::/var/spool/postfix:/sbin/nologin
+sshd:x:74:74:Privilege-separated SSH:/var/empty/sshd:/sbin/nologin
+tcpdump:x:72:72::/:/sbin/nologin
+yujiansong:x:500:500::/home/yujiansong:/bin/bash
+songsan:x:501:501::/home/songsan:/bin/bash
+
+
+细化
+
+which 是查找命令所在的路径
+
+[root@bestjiansong ssh]# which useradd
+/usr/sbin/useradd
+
+##      user    MACHINE=COMMANDS
+##
+## The COMMANDS section may have other options added to it.
+##
+## Allow root to run any commands anywhere
+root    ALL=(ALL)       ALL
+yujiansong      ALL=(ALL)       /bin/touch, /usr/sbin/useradd
+
+可以创建文件
+[yujiansong@bestjiansong ~]$ sudo touch /etc/yujiansong.txt
+[sudo] password for yujiansong: 
+[yujiansong@bestjiansong ~]$ ls -ld /etc/yujiansong.txt 
+-rw-r--r-- 1 root root 0 Nov 24 15:08 /etc/yujiansong.txt
+
+添加用户
+[yujiansong@bestjiansong ~]$ sudo useradd laosongsan
+[yujiansong@bestjiansong ~]$ id laosongsan
+uid=502(laosongsan) gid=502(laosongsan) groups=502(laosongsan)
+
+
+如果不想输入密码可以这样设置：NOPASSWD: ALL
+##      user    MACHINE=COMMANDS
+##
+## The COMMANDS section may have other options added to it.
+##
+## Allow root to run any commands anywhere
+root    ALL=(ALL)       ALL
+yujiansong      ALL=(ALL)       NOPASSWD: ALL
+#yujiansong     ALL=(ALL)       ALL
+#yujiansong     ALL=(ALL)       /bin/touch, /usr/sbin/useradd
+
+
+之后可以切换到root用户
+
+1).这样切换需要root密码
+[yujiansong@bestjiansong ~]$ su - root
+Password: 
+
+2).这样切换不需要root密码
+[yujiansong@bestjiansong ~]$ sudo su - root
+[root@bestjiansong ~]# 
+
+======================================
+
+查找命令
+
+
+which  查找命令所在位置 ， 搜索范围来自于全局环境 PATH 变量所对应的路径
+
+[root@bestjiansong ssh]# echo $PATH
+/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin:/root/bin
+
+
+[root@bestjiansong ssh]# grep PATH /etc/profile
+    case ":${PATH}:" in
+                PATH=$PATH:$1
+                PATH=$1:$PATH
+export PATH USER LOGNAME MAIL HOSTNAME HISTSIZE HISTCONTROL
+
+添加环境变量
+[root@bestjiansong ssh]# export PATH="/tmp:$PATH"
+[root@bestjiansong ssh]# echo $PATH
+/tmp:/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin:/root/bin
+
+创建一个文件，再赋予执行权限，再用which查询
+[root@bestjiansong ssh]# touch /tmp/yujiansong
+[root@bestjiansong ssh]# chmod +x /tmp/yujiansong 
+[root@bestjiansong ssh]# which yujiansong
+/tmp/yujiansong
+
+环境变量：
+PATH 系统路径变量，执行ls,cp 等非内置命令时，系统会查找PATH	里对应的路径是否有，如果没有就报告找不到命令，
+当执行which cp 来查看命令所在路径的时候，也是从PATH变量去搜索。
+
+临时修改 export PATH="/tmp:$PATH" ，永久修改前面临时修改的命令放到 /etc/profile 下，使用 source /etc/profile
+使得修改立刻生效
+
+
+
+[root@bestjiansong ssh]# which mv
+alias mv='mv -i'
+        /bin/mv
+[root@bestjiansong ssh]# which cp
+alias cp='cp -i'
+        /bin/cp
+[root@bestjiansong ssh]# which ls
+alias ls='ls --color=auto'
+        /bin/ls
+
+也可以用find查找
+[root@bestjiansong ssh]# find / -type f -name "useradd"
+/usr/sbin/useradd
+/tmp/etc/default/useradd
+/etc/default/useradd
+
+whereis查找
+[root@bestjiansong ssh]# whereis -b useradd
+useradd: /usr/sbin/useradd
+
+locate查找
+[root@bestjiansong ssh]# locate useradd
+/etc/default/useradd
+/usr/sbin/luseradd
+/usr/sbin/useradd
+
+
+
+
+
+
+
+
+
