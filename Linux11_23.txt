@@ -466,11 +466,55 @@ wts fff
 3iii jjj
 
 
+=======================================================
 
+-o  输出匹配的字符
+[root@bestjiansong ~]# cat wanglaoer.txt 
+wts fff
+2ggg hhh
+3iii jjj
+[root@bestjiansong ~]# grep "ggg" wanglaoer.txt 
+2ggg hhh
+[root@bestjiansong ~]# grep -o "wts" wanglaoer.txt 
+wts
 
+======================================================
 
+-i  不区分大小写
 
+[root@bestjiansong ~]# grep -i "HHH" wanglaoer.txt 
+2ggg hhh
 
+-v 排除 
+[root@bestjiansong ~]# grep -vi "HHH" wanglaoer.txt 
+wts fff
+3iii jjj
 
+-E 过滤多个字符串
+[root@bestjiansong ~]# grep -E "3306|1521" /etc/services 
+mysql           3306/tcp                        # MySQL
+mysql           3306/udp                        # MySQL
+ncube-lm        1521/tcp                # nCube License Manager
+ncube-lm        1521/udp                # nCube License Manager
+
+-A 匹配后面的几行
+[root@bestjiansong ~]# egrep "1521" -A 5 /etc/services 
+ncube-lm        1521/tcp                # nCube License Manager
+ncube-lm        1521/udp                # nCube License Manager
+ricardo-lm      1522/tcp                # Ricardo North America License Manager
+ricardo-lm      1522/udp                # Ricardo North America License Manager
+cichild-lm      1523/tcp                # cichild
+cichild-lm      1523/udp                # cichild
+pdap-np         1526/tcp                # Prospero Data Access Prot non-priv
+
+-B 前五行
+[root@bestjiansong ~]# egrep "1521" -B 5 /etc/services 
+vpvd            1518/udp                # Virtual Places Video data
+vpvc            1519/tcp                # Virtual Places Video control
+vpvc            1519/udp                # Virtual Places Video control
+atm-zip-office  1520/tcp                # atm zip office
+atm-zip-office  1520/udp                # atm zip office
+ncube-lm        1521/tcp                # nCube License Manager
+ncube-lm        1521/udp                # nCube License Manager
 
 
