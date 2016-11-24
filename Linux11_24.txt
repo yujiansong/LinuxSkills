@@ -240,6 +240,224 @@ locate查找
 /usr/sbin/luseradd
 /usr/sbin/useradd
 
+===============================================================
+
+调整字符集
+
+[root@bestjiansong ssh]# cat /etc/sysconfig/i18n
+LANG="en_US.UTF-8"
+SYSFONT="latarcyrheb-sun16"
+
+
+先调整服务器端字符集
+1).修改字符集，先备份再修改
+
+[root@bestjiansong ssh]# cp /etc/sysconfig/i18n /etc/sysconfig/i18n.yujiansong.20161124
+
+2).用 sed 替换
+[root@bestjiansong ssh]# sed -i 's#LANG="en_US.UTF-8"#LANG="zh_CN.UTF-8"#g' /etc/sysconfig/i18n
+[root@bestjiansong ssh]# cat /etc/sysconfig/i18n
+LANG="zh_CN.UTF-8"
+SYSFONT="latarcyrheb-sun16"
+
+3).用source 执行 并查询
+[root@bestjiansong ssh]# source /etc/sysconfig/i18n
+[root@bestjiansong ssh]# echo $LANG
+zh_CN.UTF-8
+
+
+在调整客户端修改 ：  Options > SessionOptions > Appearance > CharacterEncoding 改成 UTF-8 
+
+
+
+[root@bestjiansong ssh]# LANG=en
+[root@bestjiansong ssh]# tree /root/data/
+/root/data/
+|-- a
+|   |-- ddd
+|   |   `-- fff
+|   `-- test.txt
+|-- b
+|-- c
+|   `-- test.txt
+|-- d
+|-- e
+|-- jiansong.txt
+`-- t.txt
+
+[root@bestjiansong ssh]# echo $LANG
+zh_CN.UTF-8
+[root@bestjiansong ssh]# ls -l /tmp/
+总用量 4
+drwxr-xr-x. 72 root root 4096 11月 22 10:31 etc
+-rw-r--r--.  1 root root    0 11月 22 11:53 jiansong.txt
+-rw-r--r--.  1 root root    0 11月 22 17:05 test.txt
+-rwxr-xr-x   1 root root    0 11月 24 15:56 yujiansong
+-rw-------.  1 root root    0 11月 21 16:23 yum.log
+-rw-r--r--   1 root root    0 11月 24 17:37 于建松.txt
+
+
+====================================================================
+
+时间同步
+
+[root@bestjiansong ssh]# date -s "2016/11/24 18:18"
+2016年 11月 24日 星期四 18:18:00 CST
+[root@bestjiansong ssh]# date
+2016年 11月 24日 星期四 18:18:09 CST
+[root@bestjiansong ssh]# hwclock
+2016年11月24日 星期四 18时18分25秒  -0.490685 seconds
+
+ntpdate同步互联网时间
+[root@bestjiansong ssh]# ntpdate time.nist.gov          
+24 Nov 18:22:00 ntpdate[25381]: step time server 128.138.141.172 offset 34.202635 sec
+[root@bestjiansong ssh]# date
+2016年 11月 24日 星期四 18:22:13 CST
+
+设置定时任务
+[root@bestjiansong ssh]# echo "*/5 * * * * /usr/sbin/ntpdate time.nist.gov > /dev/null 2>&1" >> /var/spool/cron/root
+
+[root@bestjiansong ssh]# crontab -l
+*/5 * * * * /usr/sbin/ntpdate time.nist.gov > /dev/null 2>&1
+
+
+/dev/null 空设备,黑洞
+
+1). 1> /dev/null     2> /dev/null 
+等同于
+2). 1> /dev/null 2>&1    (这个比较常用)
+等同于
+3). &> /dev/null
+
+=========================================================
+
+history 设置 
+
+(控制命令行)   临时生效
+[root@bestjiansong ~]# export HISTSIZE=5 
+
+[root@bestjiansong ~]# history
+  559  HISTSIZE=5
+  560  HISTORY
+  561  history
+  562  export HISTSIZE=5
+  563  history
+
+历史记录文件的数量变量(控制文件)  临时生效
+[root@bestjiansong ~]# export HISTFILESIZE=5
+[root@bestjiansong ~]# cat ~/.bash_history 
+sed -r 's#(.*) fff#\1#g' wanglaoer.txt 
+sed -r 's#(.*)fff#\1#g' wanglaoer.txt 
+sed -r 's#(.*)ff#\1#g' wanglaoer.txt 
+sed -r 's#(.*)f#\1#g' wanglaoer.txt 
+sed -r 's#(.*)#\1#g' wanglaoer.txt 
+
+
+永久生效
+
+echo 'HISTSIZE=5' >> /etc/profile
+
+echo 'HISTFILESIZE=5' >> /etc/profile
+
+source /etc/profile
+
+
+清空已有的历史记录
+[root@bestjiansong ~]# history -c
+[root@bestjiansong ~]# history
+  563  history
+
+更改用户密码时，再用history查看，发现存在安全隐患
+[root@bestjiansong ~]# echo 123456 | passwd --stdin songsan
+更改用户 songsan 的密码 。
+passwd： 所有的身份验证令牌已经成功更新。
+[root@bestjiansong ~]# history
+  563  history
+  564  cat /etc/passwd
+  565  echo 123456 | passwd --stdin songsan
+  566  history
+
+可以用history -c 清空历史记录
+[root@bestjiansong ~]# history -c
+[root@bestjiansong ~]# history
+  563  history
+  
+查看~/.bash_history 里也没有记录
+[root@bestjiansong ~]# cat ~/.bash_history 
+sed -r 's#(.*) fff#\1#g' wanglaoer.txt 
+sed -r 's#(.*)fff#\1#g' wanglaoer.txt 
+sed -r 's#(.*)ff#\1#g' wanglaoer.txt 
+sed -r 's#(.*)f#\1#g' wanglaoer.txt 
+sed -r 's#(.*)#\1#g' wanglaoer.txt 
+
+
+也可以用history -d 来删除指定行
+
+[root@bestjiansong ~]# echo 123456 | passwd --stdin songsan
+更改用户 songsan 的密码 。
+passwd： 所有的身份验证令牌已经成功更新。
+[root@bestjiansong ~]# history
+  563  history
+  564  cat ~/.bash_history 
+  565  echo 123456 | passwd --stdin songsan
+  566  history
+[root@bestjiansong ~]# history -d 565
+[root@bestjiansong ~]# history
+  563  history
+  564  cat ~/.bash_history 
+  565  history
+  566  history -d 565
+  567  history
+
+=====================================================
+
+优化终端超时设置
+
+如果10s 不动，自动退出CRT终端(临时生效)
+[root@bestjiansong ~]# export TMOUT=10
+[root@bestjiansong ~]# timed out waiting for input: auto-logout
+
+
+永久生效
+echo "export TMOUT=10" >> /etc/profile
+
+source /etc/profile
+
+[root@bestjiansong ~]# tail -1 /etc/profile
+unset pathmunge
+
+=====================================================
+
+查看默认文件描述符
+[root@bestjiansong ~]# ulimit -n
+1024
+
+调整文件描述符
+[root@bestjiansong ~]# ulimit -SHn 65535
+[root@bestjiansong ~]# ulimit -n
+65535
+
+=====================================================
+
+Linux内核参数优化
+
+[root@bestjiansong ~]# ls -l /etc/sysctl.conf 
+-rw-r--r--. 1 root root 1150 6月  23 2012 /etc/sysctl.conf
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
