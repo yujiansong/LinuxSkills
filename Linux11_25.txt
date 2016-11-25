@@ -1,0 +1,22 @@
+
+=============================================
+
+隐藏Linux的版本信息
+
+[root@bestjiansong ~]# cat /etc/issue
+CentOS release 6.3 (Final)
+Kernel \r on an \m
+
+[root@bestjiansong ~]# cat /etc/issue.net 
+CentOS release 6.3 (Final)
+Kernel \r on an \m
+
+清空版本信息
+> /etc/issue
+
+或者
+[root@bestjiansong ~]# cat /dev/null > /etc/issue
+
+
+可以修改 /etc/motd 文件
+
