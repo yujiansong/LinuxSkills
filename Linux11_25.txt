@@ -20,3 +20,146 @@ Kernel \r on an \m
 
 可以修改 /etc/motd 文件
 
+===================================================
+
+锁定关键系统文件 chattr +i 
+
+[root@bestjiansong ~]# chattr +i  /etc/passwd /etc/group /etc/shadow /etc/gshadow /etc/inittab   
+
+[root@bestjiansong ~]# useradd kkk
+useradd: cannot open /etc/passwd
+
+[root@bestjiansong ~]# lsattr  /etc/passwd /etc/group /etc/shadow /etc/gshadow /etc/inittab          
+----i--------e- /etc/passwd
+----i--------e- /etc/group
+----i--------e- /etc/shadow
+----i--------e- /etc/gshadow
+----i--------e- /etc/inittab
+
+[root@bestjiansong ~]# echo >> /etc/passwd
+-bash: /etc/passwd: 权限不够
+
+解锁文件
+[root@bestjiansong ~]# chattr -i  /etc/passwd /etc/group /etc/shadow /etc/gshadow /etc/inittab 
+
+==========================================================
+
+为 grub引导菜单加密码保护 (123456)
+
+[root@bestjiansong ~]# /sbin/grub-md5-crypt 
+Password: 
+Retype password: 
+$1$jSya3/$cOTl6xFKjHY9p1hG4JGwR/
+
+
+把 passwd --md5 $1$jSya3/$cOTl6xFKjHY9p1hG4JGwR/  放入 /etc/grub.conf 里
+
+     13 hiddenmenu
+     14 passwd --md5 $1$jSya3/$cOTl6xFKjHY9p1hG4JGwR/
+     15 title CentOS (2.6.32-279.el6.x86_64)
+
+===============================================================
+禁止ping
+
+[root@bestjiansong ~]# echo "net.ipv4.icmp_echo_ignore_all=1" >> /etc/sysctl.conf 	 
+	 
+更新软件漏洞 
+yum install openssl openssh bash -v 
+
+
+===============================================================
+
+更新源地址
+
+1.先备份CentOS-Base.repo为CentOS-Base.repo.jiansong.20161126
+[root@bestjiansong yum.repos.d]# cp CentOS-Base.repo CentOS-Base.repo.jiansong.20161126
+[root@bestjiansong yum.repos.d]# ls
+CentOS-Base.repo  CentOS-Base.repo.jiansong.20161126  CentOS-Debuginfo.repo  CentOS-Media.repo  CentOS-Vault.repo
+
+
+[root@bestjiansong yum.repos.d]# wget -O /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-6.repo
+--2016-11-26 10:14:42--  http://mirrors.aliyun.com/repo/Centos-6.repo
+正在解析主机 mirrors.aliyun.com... 112.124.140.210, 115.28.122.210
+正在连接 mirrors.aliyun.com|112.124.140.210|:80... 已连接。
+已发出 HTTP 请求，正在等待回应... 200 OK
+长度：2572 (2.5K) [application/octet-stream]
+正在保存至: “/etc/yum.repos.d/CentOS-Base.repo”
+
+100%[===============================================================================>] 2,572       --.-K/s   in 0s      
+
+2016-11-26 10:14:44 (11.2 MB/s) - 已保存 “/etc/yum.repos.d/CentOS-Base.repo” [2572/2572])
+	 
+	 
+比较两个文件	 
+[root@bestjiansong yum.repos.d]# diff CentOS-Base.repo*	
+
+==========================================
+
+weget 下载   weget http://url 
+
+ wget -O /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-6.repo
+          下载地点         改成的名字
+		  
+===========================================
+
+目录结构：
+
+顶点 / , 其它所有目录都再根下
+根下的所有目录及目录的子目录是一个有层次的树状结构，
+很像一颗倒挂着的大树
+
+-L 显示层数
+[root@bestjiansong ~]# tree -L 1 /
+/
+|-- bin
+|-- boot
+|-- dev
+|-- etc
+|-- home
+|-- lib
+|-- lib64
+|-- lost+found
+|-- media
+|-- mnt
+|-- opt
+|-- proc
+|-- root
+|-- sbin
+|-- selinux
+|-- srv
+|-- sys
+|-- tmp
+|-- usr
+`-- var
+
+/proc  
+操作系统运行时，
+进程信息及内核信息 (比如cpu,硬盘分区，内存信息等) 存放在这里
+
+查看cpu信息
+[root@bestjiansong ~]# cat /proc/cpuinfo 
+查看内存信息
+[yujiansong@bestjiansong ~]$ cat /proc/meminfo 
+均衡负载
+[yujiansong@bestjiansong ~]$ cat /proc/loadavg 
+0.01 0.00 0.00 1/88 28269
+等价于
+[yujiansong@bestjiansong ~]$ uptime
+13:08:22 up 15:40,  3 users,  load average: 0.00, 0.00, 0.00
+											1min  5min  15min
+
+挂载信息
+[yujiansong@bestjiansong ~]$ cat /proc/mounts
+
+
+
+
+
+
+
+
+
+
+
+
+
