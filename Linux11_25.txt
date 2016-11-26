@@ -151,6 +151,8 @@ weget 下载   weget http://url
 挂载信息
 [yujiansong@bestjiansong ~]$ cat /proc/mounts
 
+===================================================================
+
 
 
 
