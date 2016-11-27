@@ -1,0 +1,212 @@
+
+===============================================
+                     编译安装Nginx
+					 
+1.安装Nginx 所需的 prce 库    (pcre: perl compatible regular expressions  ；perl兼容正则表达式 )
+
+1).查看当前Linux 系统环境
+[root@bestjiansong ~]# cat /etc/redhat-release 
+CentOS release 6.3 (Final)
+
+[root@bestjiansong ~]# uname -r
+2.6.32-279.el6.x86_64
+
+[root@bestjiansong ~]# uname -m
+x86_64
+
+2).采用yum安装方式安装pcre
+[root@bestjiansong ~]# yum install pcre pcre-devel -y
+
+yum安装操作后检查安装结果：
+[root@bestjiansong ~]# rpm -qa pcre pcre-devel
+pcre-devel-7.8-7.el6.x86_64
+pcre-7.8-7.el6.x86_64
+
+
+2.安装 Nginx
+
+1).检查并安装 Nginx 基础依赖包 pcre-devel, openssl-devel
+[root@bestjiansong ~]# rpm -qa pcre-devel pcre
+pcre-devel-7.8-7.el6.x86_64              #pcre的devel包已经安装
+pcre-7.8-7.el6.x86_64					 #pcre包已经安装
+
+[root@bestjiansong ~]# rpm -qa openssl-devel openssl
+openssl-1.0.0-20.el6_2.5.x86_64          #这里没有opensll "devel"
+
+2).安装 openssl-devel 
+[root@bestjiansong ~]# yum install -y openssl openssl-devel
+
+yum安装操作后检查安装结果：
+[root@bestjiansong ~]# rpm -qa openssl openssl-devel
+openssl-1.0.1e-48.el6_8.3.x86_64
+openssl-devel-1.0.1e-48.el6_8.3.x86_64
+
+3.开始安装 Nginx 
+1).
+[root@bestjiansong ~]# mkdir -p /home/jiansong/tools     #存放用来装装的各种软件
+[root@bestjiansong ~]# cd /home/jiansong/tools/
+2).下载软件包
+[root@bestjiansong tools]# wget -q http://nginx.org/download/nginx-1.6.3.tar.gz
+3).下载完成之后查看一下
+[root@bestjiansong tools]# ls
+nginx-1.6.3.tar.gz
+
+[root@bestjiansong tools]# ls -l nginx-1.6.3.tar.gz 
+-rw-r--r-- 1 root root 805253 Apr  8  2015 nginx-1.6.3.tar.gz
+
+4).
+[root@bestjiansong tools]# useradd nginx -s /sbin/nologin -M
+5).解压
+[root@bestjiansong tools]# useradd nginx -s /sbin/nologin -M
+[root@bestjiansong tools]# tar xf nginx-1.6.3.tar.gz 
+[root@bestjiansong tools]# ls
+nginx-1.6.3  nginx-1.6.3.tar.gz
+
+6).
+ ./configure --user=nginx --group=nginx --prefix=/application/nginx-1.6.3/ --with-http_stub_status_module --with-http_ssl_module
+
+make
+
+make install 
+
+[root@bestjiansong nginx-1.6.3]# ln -s /application/nginx-1.6.3/ /application/ngir
+
+7).检查连接及目录状态
+[root@bestjiansong nginx-1.6.3]# ll /application/ | grep nginx
+drwxr-xr-x 6 root root 4096 Nov 15 03:04 nginx-1.6.3
+lrwxrwxrwx 1 root root   25 Nov 15 03:05 nginx -> /application/nginx-1.6.3/
+
+3.启动并检查安装结果
+1).启动前检查配置文件语法
+[root@bestjiansong application]# /application/nginx/sbin/nginx -t
+nginx: the configuration file /application/nginx-1.6.3//conf/nginx.conf syntax is ok
+nginx: configuration file /application/nginx-1.6.3//conf/nginx.conf test is successful
+
+2).启动 Nginx服务
+[root@bestjiansong conf]# /application/nginx/sbin/nginx 
+
+3).查看对应端口是否成功启动
+[root@bestjiansong conf]# lsof -i:80
+COMMAND  PID  USER   FD   TYPE DEVICE SIZE/OFF NODE NAME
+nginx   1065  root    6u  IPv4  59656      0t0  TCP *:http (LISTEN)
+nginx   1066 nginx    6u  IPv4  59656      0t0  TCP *:http (LISTEN)
+
+或者
+
+[root@bestjiansong conf]# netstat -lnt | grep 80
+tcp        0      0 0.0.0.0:80                  0.0.0.0:*                   LISTEN  
+
+4).检查 nginx 的实际效果
+
+打开浏览器输入 http://192.168.150.130   192.168.150.130 是linux服务器的IP地址
+
+在Linux 下使用 weget 命令检测
+[root@bestjiansong conf]# wget 127.0.0.1
+--2016-11-15 04:51:57--  http://127.0.0.1/
+Connecting to 127.0.0.1:80... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: 612 [text/html]
+Saving to: “index.html.2”
+
+100%[===============================================================================>] 612         --.-K/s   in 0s      
+
+2016-11-15 04:51:57 (2.61 MB/s) - “index.html.2” saved [612/612]
+
+也可使用curl命令检测，如下：
+[root@bestjiansong conf]# curl 127.0.0.1
+
+<!DOCTYPE html>
+<html>
+<head>
+<title>Welcome to nginx!</title>
+<style>
+    body {
+        width: 35em;
+        margin: 0 auto;
+        font-family: Tahoma, Verdana, Arial, sans-serif;
+    }
+</style>
+</head>
+<body>
+<h1>Welcome to nginx!</h1>
+<p>If you see this page, the nginx web server is successfully installed and
+working. Further configuration is required.</p>
+
+<p>For online documentation and support please refer to
+<a href="http://nginx.org/">nginx.org</a>.<br/>
+Commercial support is available at
+<a href="http://nginx.com/">nginx.com</a>.</p>
+
+<p><em>Thank you for using nginx.</em></p>
+</body>
+</html>
+
+以上3种方法都可以检测Nginx的安装及浏览是否正常。
+
+===================================================
+：部署一个Web站点
+
+Nginx的默认站点目录是Nginx安装目录/application/nginx/下的html目录，
+这可以从Ng-inx主配置文件/application/nginx/conf/nginx.conf中查到，
+内容如下：
+
+[root@bestjiansong conf]# grep html /application/nginx/conf/nginx.conf
+            root   html;                 # 这个就是默认的站点目录html，就是/
+            index  index.html index.htm; #index.htm←这是站点的首页文件
+        #error_page  404              /404.html;
+        # redirect server error pages to the static page /50x.html
+        error_page   500 502 503 504  /50x.html;
+        location = /50x.html {
+            root   html;
+        #    root           html;
+    #        root   html;
+    #        index  index.html index.htm;
+    #        root   html;
+    #        index  index.html index.htm;
+
+这里进入/application/nginx/html下，删除掉Nginx默认的首页index.html（原始内容为Welcome to Nginx等），
+然后新建立一个in-dex.html，加入如下网页内容，并保存：
+
+[root@bestjiansong conf]# cd /application/nginx/html/
+
+[root@bestjiansong html]# ls
+50x.html  index.html
+
+备份好index.html，再重新编写index.html
+[root@bestjiansong html]# cat index.html
+<!DOCTYPE html>
+<html>
+<head>
+<title>yujiansong, s Nginx server blog.</title>
+<style>
+    body {
+        width: 35em;
+        margin: 0 auto;
+        font-family: Tahoma, Verdana, Arial, sans-serif;
+    }
+</style>
+</head>
+<body>
+<h1>Welcome to my github!</h1>
+Hi, my Github is 
+<a
+href="https://github.com/yujiansong">
+https://github.com/yujiansong</a>
+<p><em>Thank you for using github.</em></p>
+</body>
+</html>
+
+
+此时，打开浏览器输入http://192.168.150.130，然后回车显示修改后的内容。
+
+
+
+
+
+
+
+
+
+
+
+
