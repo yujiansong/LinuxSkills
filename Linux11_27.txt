@@ -123,3 +123,14 @@ total 0
 5 5
 6 6
 
+=======================================
+
+在Linux下软件服务随系统启动而启动的配置
+
+[root@bestjiansong ~]# chkconfig sshd off
+[root@bestjiansong ~]# chkconfig --list sshd
+sshd            0:off   1:off   2:off   3:off   4:off   5:off   6:off
+[root@bestjiansong ~]# chkconfig --level 35 sshd on
+[root@bestjiansong ~]# chkconfig --list sshd
+sshd            0:off   1:off   2:off   3:on    4:off   5:on    6:off
+
