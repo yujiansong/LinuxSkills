@@ -1,0 +1,35 @@
+
++++++++++++++++++++++++++++++++++++++++++++
+
+一、基本设置
+
+1、修改设置
+
+为了SecureCRT用起来更方便，需要做一些设置，需要修改的有如下几处：
+
+1、退出主机自动关闭窗口
+
+Options => Global ptions => General => Default Session => Edit Default Settings...
+
+Terminal中将Close on disconnect 选上，当用户从主机中退出后可以自动关闭当前连接的窗口。
+
+2、修改默认卷屏行数
+
+当你做一个操作，屏幕输出有上百行，当需要将屏幕回翻时，这个设置会有很大帮助，默认为500行，
+可以改为10000行，不用担心找不到了。
+
+Terminal => Emulation => Scrollback 修改为10000。
+
+
+3、拷贝与粘贴的设置
+
+通过鼠标操作即可拷贝或粘贴所需内容是一个非常方便的设置
+
+Options => Global ptions => Terminal => Mouse
+
+选中Copy on select 和 Paste on middle button
+
+这样设置后，只要用鼠标选中所需内容，则将内容拷贝到剪切板中，点击鼠标中键即可粘贴内容。
+
+
+ 
