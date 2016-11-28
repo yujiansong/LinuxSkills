@@ -1,0 +1,342 @@
+
+=================================================
+Linux 运行模式：/etc/inittab
+
+[root@bestjiansong ~]# cat /etc/inittab 
+# inittab is only used by upstart for the default runlevel.
+#
+# ADDING OTHER CONFIGURATION HERE WILL HAVE NO EFFECT ON YOUR SYSTEM.
+#
+# System initialization is started by /etc/init/rcS.conf
+#
+# Individual runlevels are started by /etc/init/rc.conf
+#
+# Ctrl-Alt-Delete is handled by /etc/init/control-alt-delete.conf
+#
+# Terminal gettys are handled by /etc/init/tty.conf and /etc/init/serial.conf,
+# with configuration in /etc/sysconfig/init.
+#
+# For information on how to write upstart event handlers, or how
+# upstart works, see init(5), init(8), and initctl(8).
+#
+# Default runlevel. The runlevels used are:
+#   0 - halt (Do NOT set initdefault to this)
+#   1 - Single user mode
+#   2 - Multiuser, without NFS (The same as 3, if you do not have networking)
+#   3 - Full multiuser mode
+#   4 - unused
+#   5 - X11
+#   6 - reboot (Do NOT set initdefault to this)
+# 
+id:3:initdefault:
+
+===========================================
+
+打包命令tar :
+
+tar zcvf 筐  苹果
+
+z 压缩
+
+c 创建
+
+v 显示过程
+
+f 文件
+
+
+
+打包 /etc 目录为 etc.tar.gz 
+[root@bestjiansong ~]# tar zcvf etc.tar.gz /etc/
+
+查看
+[root@bestjiansong ~]# ls -lh etc.tar.gz 
+-rw-r--r-- 1 root root 7.1M Nov 28 10:21 etc.tar.gz
+查看包里的东西
+[root@bestjiansong ~]# tar tf etc.tar.gz 
+
+
+
+
+打包的常用命令组合：
+ZCVF
+
+查看压缩包内容的组合
+tf
+
+打包时排除jiansong.txt文件
+[root@bestjiansong ~]# tar -zcvf data.tar.gz --exclude=data/jiansong.txt ./data/
+./data/
+./data/b/
+./data/a/
+./data/a/test.txt
+./data/a/ddd/
+./data/a/ddd/fff/
+./data/e/
+./data/d/
+./data/c/
+./data/c/test.txt
+
+查看一下
+[root@bestjiansong ~]# tar tf data.tar.gz 
+./data/
+./data/b/
+./data/a/
+./data/a/test.txt
+./data/a/ddd/
+./data/a/ddd/fff/
+./data/e/
+./data/d/
+./data/c/
+./data/c/test.txt
+
+
+排除jiansong.txt   wanglaoer.txt 两个文件然后打包
+[root@bestjiansong ~]# tar -zcvf data.tar.gz --exclude data/jiansong.txt --exclude data/wanglaoer.txt ./data/
+./data/
+./data/b/
+./data/a/
+./data/a/test.txt
+./data/a/ddd/
+./data/a/ddd/fff/
+./data/e/
+./data/d/
+./data/c/
+./data/c/test.txt
+
+[root@bestjiansong ~]# tar tf data.tar.gz 
+./data/
+./data/b/
+./data/a/
+./data/a/test.txt
+./data/a/ddd/
+
+
+解包常用的命令组合
+zxvf
+
+[root@bestjiansong ~]# tar -xf data.tar.gz 
+
+
+==================================================
+
+cut截取
+[root@bestjiansong ~]# cat jiansong.txt 
+my qq is 282426287
+
+[root@bestjiansong ~]# awk '{print $2 " " $4}' jiansong.txt 
+qq 282426287
+
+[root@bestjiansong ~]# cut -c 4-5,10-18 jiansong.txt 
+qq282426287
+
+[root@bestjiansong ~]# cat jiansong.txt 
+my qq ,is 282426287 okay, good luck jiansong.
+[root@bestjiansong ~]# sed 's#,# #g' jiansong.txt | cut -d " " -f2,5
+qq 282426287
+
+
+========================================================================
+
+私网地址：
+
+A类地址：10.0.0.0～10.255.255.255
+B类地址：172.16.0.0 ～172.31.255.255
+C类地址：192.168.0.0～192.168.255.255
+
+简单的说，IP地址分5类，常见的地址是A、B、C类
+
+A类
+
+1.0.0.0 到126.0.0.0 
+
+0.0.0.0 和127.0.0.0保留 
+
+B 
+128.1.0.0到191.254.0.0
+
+128.0.0.0和191.255.0.0保留 
+
+C 
+192.0.1.0 到223.255.254.0
+
+192.0.0.0和223.255.255.0保留 
+
+D 
+224.0.0.0到239.255.255.255用于多点广播 
+
+E 
+240.0.0.0到255.255.255.254保留 
+
+255.255.255.255用于广播
+
+=============================================
+
+DNS 解析
+
+Domain Name System 
+jiansong ------ 1.1.1.1 过程就需要DNS解析 （电脑里配置的DNS） 
+
+DNS 应用：
+A记录： www.jiansong.me ------ 1.1.1.1
+CNAME   常备CDN服务商应用
+MX       解析记录 1151263190@qq.com  搭建邮件服务
+PTR反向解析  1.1.1.1 ------ www.jiansong.me    邮件服务
+
+DNS A记录 解析过程
+浏览器 ---  www.jiansong.com ------> 网站服务器IP地址 ------> ip地址对应的网站服务器
+
+=============================================
+
+DNS 解析流程原理
+DNS 本身倒挂着的树状结构，顶点也是根 “ . ”，和Linux目录结构很像。
+
+. ======> 根服务器，全球有13台根服务器
+
+顶级域名： org, com ,net 
+
+一级域名： baidu, sina, google, ...
+
+============================================
+
+解析过程
+[root@bestjiansong ~]# dig @8.8.8.8 www.baidu.com +trace
+
+
+[root@bestjiansong ~]# nslookup www.hnust.edu.cn
+Server:         192.168.150.2
+Address:        192.168.150.2#53
+
+Non-authoritative answer:
+Name:   www.hnust.edu.cn
+Address: 218.75.230.30
+
+
+[root@bestjiansong ~]# host www.hnust.edu.cn
+www.hnust.edu.cn has address 218.75.230.30
+
+[root@bestjiansong ~]# ping www.hnust.edu.cn
+PING www.hnust.edu.cn (218.75.230.30) 56(84) bytes of data.
+
+=========================================================
+
+配置网卡
+网卡配置文件 [root@bestjiansong ~]# cat /etc/sysconfig/network-scripts/ifcfg-eth0 
+
+DEVICE=eth0
+BOOTPROTO=dhcp
+HWADDR=00:0c:29:47:63:35
+NM_CONTROLLED=yes
+ONBOOT=yes
+TYPE=Ethernet
+UUID="a7222ea7-7f41-408d-b287-8f9bfce5af1a"
+DNS2=202.106.0.20
+DNS1=8.8.8.8
+USERCTL=no
+PEERDNS=yes
+IPV6INIT=no
+
+
+setup-network config 就是网卡的配置文件
+
+
+网卡生效方式：
+
+推荐(ifdown ifup )
+ifdown eth0 停掉eth0 网卡
+ifup eth0   启动eth0 网卡 
+
+或者
+/etc/init.d/network restart 针对所有网卡的
+
+
+网卡配置的DNS优先于 /etc/resolv.conf 的。 并且重启网卡，会把/etc/resolv.conf的给覆盖
+
+
+[root@bestjiansong ~]# cat /etc/resolv.conf
+; generated by /sbin/dhclient-script
+search localdomain
+nameserver 192.168.150.2
+
+====================================================
+
+推荐修改主机名的规范步骤
+
+1.
+[root@bestjiansong ~]# hostname
+bestjiansong
+2.[root@bestjiansong ~]# vi /etc/sysconfig/network
+NETWORKING=yes
+HOSTNAME=bestjiansong
+3.[root@bestjiansong ~]# vi /etc/hosts
+127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4
+::1         localhost localhost.localdomain localhost6 localhost6.localdomain6
+192.168.150.130 bestjiansong
+
+====================================================
+http://www.centoscn.com/image-text/config/2016/0507/7197.html
+
+Linux时间同步：
+
+1.查看当前时间：
+[root@bestjiansong ~]# date
+Mon Nov 28 23:25:06 CST 2016
+
+2.date '+%Y%M%D' 按照格式显示当前日期,结果如下：
+[root@bestjiansong ~]# date "+%Y-%m-%d %H:%M:%S"
+2016-11-28 23:23:55
+
+3.date -s "xxx xx：xx：xx" 设置系统时间
+
+[root@linuxprobe ~]# date -s "20160429 15:30:00"
+2016年 04月 29日 星期五 15:30:00 CST
+
+也可以这样设置
+[root@bestjiansong ~]# date 112823262016.26
+Mon Nov 28 23:26:26 CST 2016
+
+时间同步：
+下面我们来看一下我们在复杂环境下怎么把多台linux设置统一的正确环境：对-时间同步
+命令：utpdate 时间服务器ip
+ntpdate -u xx.xx.xx.xx 结果如下：
+
+[root@bestjiansong ~]# ntpdate -u  ntp.api.bz
+28 Nov 23:33:47 ntpdate[24898]: adjust time server 17.253.84.125 offset 0.004659 sec
+
+[root@bestjiansong ~]# date
+Mon Nov 28 23:33:52 CST 2016
+
+ps：若不加上-u参数， 会出现以下提示：no server suitable for synchronization found
+-u：从man ntpdate中可以看出-u参数可以越过防火墙与主机同步；
+
+
+ntp常用服务器：
+
+中国国家授时中心：210.72.145.44
+NTP服务器(上海) ：ntp.api.bz
+美国： time.nist.gov
+复旦： ntp.fudan.edu.cn
+微软公司授时主机(美国) ：time.windows.com
+北京邮电大学 : s1a.time.edu.cn
+清华大学 : s1b.time.edu.cn
+北京大学 : s1c.time.edu.cn
+台警大授时中心(台湾)：asia.pool.ntp.org
+
+时区操作：
+1.查看时区 date "+%Z"
+[root@bestjiansong ~]# date "+%Z"
+CST
+
+2.使用cat /etc/sysconfig/clock查看当前时区
+[root@bestjiansong ~]# cat /etc/sysconfig/clock
+ZONE="Asia/Shanghai"
+
+将系统时间写入到硬件（bios）
+[root@bestjiansong ~]# hwclock
+Mon 28 Nov 2016 11:43:42 PM CST  -0.926202 seconds
+[root@bestjiansong ~]# clock -w
+
+
+
+
+
