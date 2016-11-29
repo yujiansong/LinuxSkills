@@ -1,0 +1,140 @@
+
+===========================================
+鸟哥
+http://cn.linux.vbird.org/
+
+Linux 运维常用命令
+http://www.centoscn.com/IT/2013/1013/1803.html
+
+查看硬件制造商
+[root@bestjiansong ~]# dmidecode -s system-product-name
+VMware Virtual Platform
+
+http://cn.linux.vbird.org/
+
+===========================================
+
+获取IP地址
+[root@bestjiansong ~]# /sbin/ifconfig eth0 | grep 'inet addr'| sed 's#^.*addr:##g'| sed 's#Bcast.*$##g'
+192.168.150.130 
+
+==========================================
+
+[root@bestjiansong ~]# cat /etc/man.config | grep 'MAN'| sed 's/#.*$//g'| sed '/^$/d'
+MANPATH /usr/man
+MANPATH /usr/share/man
+MANPATH /usr/local/man
+MANPATH /usr/local/share/man
+MANPATH /usr/X11R6/man
+MANPATH_MAP     /bin                    /usr/share/man
+MANPATH_MAP     /sbin                   /usr/share/man
+MANPATH_MAP     /usr/bin                /usr/share/man
+MANPATH_MAP     /usr/sbin               /usr/share/man
+MANPATH_MAP     /usr/local/bin          /usr/local/share/man
+MANPATH_MAP     /usr/local/sbin         /usr/local/share/man
+MANPATH_MAP     /usr/X11R6/bin          /usr/X11R6/man
+MANPATH_MAP     /usr/bin/X11            /usr/X11R6/man
+MANPATH_MAP     /usr/bin/mh             /usr/share/man
+MANSECT         1:1p:8:2:3:3p:4:5:6:7:9:0p:n:l:p:o:1x:2x:3x:4x:5x:6x:7x:8x
+
+=========================================================
+
+基础正则表达式：
+[root@bestjiansong ~]# grep -v '^$' /etc/rsyslog.conf | grep -v '^#'
+$ModLoad imuxsock # provides support for local system logging (e.g. via logger command)
+$ModLoad imklog   # provides kernel logging support (previously done by rklogd)
+$ActionFileDefaultTemplate RSYSLOG_TraditionalFileFormat
+$IncludeConfig /etc/rsyslog.d/*.conf
+*.info;mail.none;authpriv.none;cron.none                /var/log/messages
+authpriv.*                                              /var/log/secure
+mail.*                                                  -/var/log/maillog
+cron.*                                                  /var/log/cron
+*.emerg                                                 *
+uucp,news.crit                                          /var/log/spooler
+local7.*                                                /var/log/boot.log
+
+
+延伸正则表达式
+[root@bestjiansong ~]# egrep -v '^$|^#' /etc/rsyslog.conf 
+$ModLoad imuxsock # provides support for local system logging (e.g. via logger command)
+$ModLoad imklog   # provides kernel logging support (previously done by rklogd)
+$ActionFileDefaultTemplate RSYSLOG_TraditionalFileFormat
+$IncludeConfig /etc/rsyslog.d/*.conf
+*.info;mail.none;authpriv.none;cron.none                /var/log/messages
+authpriv.*                                              /var/log/secure
+mail.*                                                  -/var/log/maillog
+cron.*                                                  /var/log/cron
+*.emerg                                                 *
+uucp,news.crit                                          /var/log/spooler
+local7.*                                                /var/log/boot.log
+
+延伸正则表达式用法：
+
++   意义：重复『一个或一个以上』的前一个 RE 字符
+搜寻 (god) (good) (goood)... 等等的字串。 那个 o+ 代表『一个以上的 o 』所以，
+底下的运行成果会将第 1, 9, 13 行列出来
+[root@bestjiansong ~]# egrep -n 'go+d' regular_express.txt
+1:"Open Source" is a good mechanism to develop programs.
+9:Oh! The soup taste good.
+13:Oh!  My god!
+
+？  意义：『零个或一个』的前一个 RE 字符
+范例：搜寻 (gd) (god) 这两个字串。 
+那个 o? 代表『空的或 1 个 o 』所以，上面的运行成果会将第 13, 14 行列出来。 
+[root@bestjiansong ~]# egrep -n 'go?d' regular_express.txt
+13:Oh!  My god!
+14:The gd software is a library for drafting programs.
+
+
+|  意义：用或( or )的方式找出数个字串
+范例：搜寻 gd 或 good 这两个字串，注意，是『或』！ 
+所以，第 1,9,14 这三行都可以被列印出来喔！那如果还想要找出 dog 呢？
+[root@bestjiansong ~]# egrep -n 'gd|good' regular_express.txt
+1:"Open Source" is a good mechanism to develop programs.
+9:Oh! The soup taste good.
+14:The gd software is a library for drafting programs.
+
+14:The gd software is a library for drafting programs.
+[root@bestjiansong ~]# egrep -n 'gd|good|dog' regular_express.txt
+1:"Open Source" is a good mechanism to develop programs.
+9:Oh! The soup taste good.
+14:The gd software is a library for drafting programs.
+17:I like dog.
+
+()  意义：找出『群组』字串
+范例：搜寻 (glad) 或 (good) 这两个字串，因为 g 与 d 是重复的，
+所以， 我就可以将 la 与 oo 列於 ( ) 当中，并以 | 来分隔开来，就可以啦！
+
+[root@bestjiansong ~]# egrep -n 'g(la|oo)d' regular_express.txt
+1:"Open Source" is a good mechanism to develop programs.
+9:Oh! The soup taste good.
+16:The world <Happy> is the same with "glad".
+
+
+()+  意义：多个重复群组的判别
+
+范例：将『AxyzxyzxyzxyzC』用 echo 叫出，然后再使用如下的方法搜寻一下！
+echo 'AxyzxyzxyzxyzC' | egrep 'A(xyz)+C'
+上面的例子意思是说，我要找开头是 A 结尾是 C ，中间有一个以上的 "xyz" 字串的意思～
+
+[root@bestjiansong ~]# echo 'AxyzxyzxyzxyzxyzxyzxyzC' | egrep 'A(xyz)+C'
+AxyzxyzxyzxyzxyzxyzxyzC
+
+如果你想要查出来文件中含有 ! 与 > 的字行时，可以这样：
+[root@bestjiansong ~]# grep -n '[!>]' regular_express.txt
+9:Oh! The soup taste good.
+13:Oh!  My god!
+16:The world <Happy> is the same with "glad".
+19:goooooogle yes!
+20:go! go! Let's go.
+
+
+这样可以了解了吗？常常看到有陷阱的题目写：
+『反向选择这样对否？ '[!a-z]'？』， 呵呵！是错的呦～要 '[^a-z] 才是对的！
+
+=========================================================================
+
+
+
+
+
