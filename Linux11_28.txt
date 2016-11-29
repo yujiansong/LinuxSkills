@@ -336,6 +336,31 @@ ZONE="Asia/Shanghai"
 Mon 28 Nov 2016 11:43:42 PM CST  -0.926202 seconds
 [root@bestjiansong ~]# clock -w
 
+============================================
+Linux下网络故障诊断
+http://www.centoscn.com/yunwei/news/2016/0506/7190.html
+
+1.诊断网卡故障：
+[root@bestjiansong ~]# dmesg | grep eth
+“eth0:link up”的提示，表示Linux已经检测到了网卡，并处于正常工作状态。
+
+最后可以用ethtool查看以太网的链路连接是否正常。
+[root@bestjiansong ~]# ethtool eth0
+Settings for eth0:
+        Current message level: 0x00000007 (7)
+        Link detected: yes
+
+如果看到“Link detected:yes”一行，表明网卡也对方的网络线路连接是正常的。
+
+
+2.诊断网络层问题
+
+网络层问题诊断方法很简单，就是直接ping外网的某一个域名或者IP，能正常连通的，则说明网络层没有问题。
+
+
+
+
+
 
 
 
