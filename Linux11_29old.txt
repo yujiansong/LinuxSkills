@@ -1,0 +1,128 @@
+
+=========================================
+
+配置默认网关：
+
+第一生效文件：
+[root@bestjiansong ~]# cat /etc/sysconfig/network-scripts/ifcfg-eth0 
+DEVICE=eth0
+BOOTPROTO=dhcp
+HWADDR=00:0c:29:47:63:35
+NM_CONTROLLED=yes
+ONBOOT=yes
+TYPE=Ethernet
+UUID="a7222ea7-7f41-408d-b287-8f9bfce5af1a"
+DNS2=202.106.0.20
+DNS1=8.8.8.8
+USERCTL=no
+PEERDNS=yes
+IPV6INIT=no
+
+
+第二生效文件：
+
+[root@bestjiansong ~]# cat /etc/sysconfig/network
+NETWORKING=yes
+HOSTNAME=bestjiansong
+
+第三：命令行优先，且临时生效。
+route add default  gw 10.0.0.254 
+
+=================================
+
+查看网关：
+
+[root@bestjiansong ~]# route -n
+Kernel IP routing table
+Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
+192.168.150.0   0.0.0.0         255.255.255.0   U     0      0        0 eth0
+0.0.0.0         192.168.150.2   0.0.0.0         UG    0      0        0 eth0
+
+或者
+[root@bestjiansong ~]# netstat -rn
+Kernel IP routing table
+Destination     Gateway         Genmask         Flags   MSS Window  irtt Iface
+192.168.150.0   0.0.0.0         255.255.255.0   U         0 0          0 eth0
+0.0.0.0         192.168.150.2   0.0.0.0         UG        0 0          0 eth0
+
+默认网关 是 192.168.150.2 
+
+
+删除默认网关：
+[root@bestjiansong ~]# route del default gw 192.168.150.2
+添加默认网关：
+[root@bestjiansong ~]# route add default gw 192.168.150.2
+
+删除默认网关：上不了网
+[root@bestjiansong ~]# route del default gw 192.168.150.2
+[root@bestjiansong ~]# route -n
+Kernel IP routing table
+Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
+192.168.150.0   0.0.0.0         255.255.255.0   U     0      0        0 eth0
+[root@bestjiansong ~]# ping baidu.com
+connect: Network is unreachable
+
+添加默认网关：可以继续上网
+
+[root@bestjiansong ~]# route add default gw 192.168.150.2
+[root@bestjiansong ~]# route -n
+Kernel IP routing table
+Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
+192.168.150.0   0.0.0.0         255.255.255.0   U     0      0        0 eth0
+0.0.0.0         192.168.150.2   0.0.0.0         UG    0      0        0 eth0
+[root@bestjiansong ~]# ping baidu.com
+PING baidu.com (123.125.114.144) 56(84) bytes of data.
+64 bytes from 123.125.114.144: icmp_seq=1 ttl=128 time=89.4 ms
+64 bytes from 123.125.114.144: icmp_seq=2 ttl=128 time=107 ms
+64 bytes from 123.125.114.144: icmp_seq=3 ttl=128 time=106 ms
+64 bytes from 123.125.114.144: icmp_seq=4 ttl=128 time=103 ms
+64 bytes from 123.125.114.144: icmp_seq=5 ttl=128 time=99.1 ms
+64 bytes from 123.125.114.144: icmp_seq=6 ttl=128 time=97.2 ms
+
+资料 http://oldboy.blog.51cto.com/2561410/974194
+	 http://oldboy.blog.51cto.com/2561410/1119453
+
+
+=================================================================
+
+配置与查看网络信息
+
+额外增加别名IP .虚拟IP ，当网卡重启时会失效
+[root@bestjiansong ~]# ifconfig eth0:1 192.168.150.133 netMask 255.255.255.0 up
+或者
+[root@bestjiansong ~]# ifconfig eth0:1 192.168.150.133/24 up
+
+[root@bestjiansong ~]# ifconfig
+eth0      Link encap:Ethernet  HWaddr 00:0C:29:47:63:35  
+          inet addr:192.168.150.130  Bcast:192.168.150.255  Mask:255.255.255.0
+          inet6 addr: fe80::20c:29ff:fe47:6335/64 Scope:Link
+          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+          RX packets:176293 errors:1 dropped:0 overruns:0 frame:0
+          TX packets:58685 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:1000 
+          RX bytes:19620017 (18.7 MiB)  TX bytes:12677710 (12.0 MiB)
+          Interrupt:19 Base address:0x2000 
+
+eth0:1    Link encap:Ethernet  HWaddr 00:0C:29:47:63:35  
+          inet addr:192.168.150.133  Bcast:192.168.150.255  Mask:255.255.255.0
+          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+          Interrupt:19 Base address:0x2000 
+
+lo        Link encap:Local Loopback  
+          inet addr:127.0.0.1  Mask:255.0.0.0
+          inet6 addr: ::1/128 Scope:Host
+          UP LOOPBACK RUNNING  MTU:16436  Metric:1
+          RX packets:189 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:189 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:0 
+          RX bytes:24276 (23.7 KiB)  TX bytes:24276 (23.7 KiB)
+		  
+停止网卡	  
+[root@bestjiansong ~]# ifconfig eth0:1 down
+
+
+
+
+
+
+
