@@ -1,0 +1,61 @@
+
+===========================================
+查看别名：
+
+[root@bestjiansong ~]# uname -n
+bestjiansong
+[root@bestjiansong ~]# hostname
+bestjiansong
+
+
+网络及服务故障检查：
+
+例：检查hnust或 baidu 的网站是否有问题。
+
+a. ping www.hnust.edu.cn  icmp协议基础，(高速公路有没有通)
+
+
+=============================================
+
+抓包工具：
+[root@bestjiansong ~]# tcpdump -n icmp -i eth0
+
+
+在 cmd 下 ping eth0的IP：
+
+[root@bestjiansong ~]# tcpdump -n icmp -i eth0
+tcpdump: verbose output suppressed, use -v or -vv for full protocol decode
+listening on eth0, link-type EN10MB (Ethernet), capture size 65535 bytes
+16:53:36.378419 IP 192.168.150.1 > 192.168.150.130: ICMP echo request, id 1, seq 53, length 40
+16:53:36.378673 IP 192.168.150.130 > 192.168.150.1: ICMP echo reply, id 1, seq 53, length 40
+16:53:37.382195 IP 192.168.150.1 > 192.168.150.130: ICMP echo request, id 1, seq 54, length 40
+16:53:37.382370 IP 192.168.150.130 > 192.168.150.1: ICMP echo reply, id 1, seq 54, length 40
+16:53:38.392202 IP 192.168.150.1 > 192.168.150.130: ICMP echo request, id 1, seq 55, length 40
+16:53:38.392378 IP 192.168.150.130 > 192.168.150.1: ICMP echo reply, id 1, seq 55, length 40
+16:53:39.400444 IP 192.168.150.1 > 192.168.150.130: ICMP echo request, id 1, seq 56, length 40
+16:53:39.400546 IP 192.168.150.130 > 192.168.150.1: ICMP echo reply, id 1, seq 56, length 40
+
+
+===========================================
+
+局域网某个机器无法上网如何解决：
+
+以Win32客户端为例：排查方法
+	提示：基本检查思路，在Win32客户端上执行
+	
+a. ping www.baisu.com
+	如果通，但是不能上网:可能是浏览器，中毒等问题。
+	
+b. ping 网关
+	目的是排除物理链路(网线，网卡，驱动，IP设置等)。
+	如果ping网关不通，则查看IP设置，然后ping自身IP或ping网内其它机器IP
+	如果ping自己IP不通，检查IP设置，网卡驱动，物理链路。
+	如果ping网内其它机器IP是通的，网关不让你联网了。
+c. ping网关桶的情况下，检查DNS设置情况是否正确
+	1.检查方法是：ping 公网IP，看通畅情况(平时要记住几个外部IP) ping 203.81.19.1 
+	2.host/dig/nslookup 检查域名解析
+d. 上网路由器问题(配置和硬件) 以及ISP 线路问题
+
+e. 辅助排查：其他人能否上网， IP地址冲突，ARP病毒，核心交换机坏了，交换机环路(看日志)。
+	大面积上不了网
+   路由器，ISP,核心交换机， ARP病毒欺骗网关，网关地址被占用，LDNS。
