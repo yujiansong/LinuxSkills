@@ -1,0 +1,35 @@
+
+===================================================
+[root@bestjiansong ~]# last -n 5 | awk '{print $1 "\t" $3}'
+root    192.168.150.1
+root    192.168.150.1
+root    192.168.150.1
+root    192.168.150.1
+root    192.168.150.1
+
+
+[root@bestjiansong ~]# cat /etc/passwd | awk '{FS=":"} $3 < 10 {print $1 "\t" $3}'
+root:x:0:0:root:/root:/bin/bash
+bin     1
+daemon  2
+adm     3
+lp      4
+sync    5
+shutdown        6
+halt    7
+mail    8
+
+
+[root@bestjiansong ~]# cat /etc/passwd | awk 'BEGIN{FS=":"} $3 < 10 {print $1 "\t" $3}'
+root    0
+bin     1
+daemon  2
+adm     3
+lp      4
+sync    5
+shutdown        6
+halt    7
+mail    8
+
+
+
