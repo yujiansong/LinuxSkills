@@ -1,0 +1,235 @@
+
+===================================
+资料： http://oldboy.blog.51cto.com/2561410/1410555
+定时任务Crond介绍
+1.系统定时任务
+2.用户定时任务
+[root@bestjiansong ~]# while true
+> do
+>   echo "I am yujiansong."
+>   sleep 1
+> done
+I am yujiansong.
+I am yujiansong.
+I am yujiansong.
+I am yujiansong.
+I am yujiansong.
+I am yujiansong.
+
+程序和进程：
+
+程序： 相当于静止的汽车
+
+进程： 相当于运动的汽车
+
+================================
+
+[root@bestjiansong ~]# ps -ef | grep crond
+root      1164     1  0 Dec04 ?        00:00:27 crond
+root      1692 32536  5 12:50 pts/0    00:00:00 grep --color=auto crond
+
+=================================
+
+
+[root@bestjiansong ~]# ll /var/log/messages
+-rw------- 1 root root 21069 Dec  7 12:55 /var/log/messages
+
+[root@bestjiansong ~]# ll /var/log/secure*
+-rw-------  1 root root 1125 Dec  5 23:45 /var/log/secure
+-rw-------  1 root root 4663 Nov 15 04:20 /var/log/secure-20161115
+-rw-------. 1 root root 3242 Nov 24 10:48 /var/log/secure-20161124
+-rw-------  1 root root 8936 Nov 27 01:04 /var/log/secure-20161127
+-rw-------  1 root root 6170 Dec  3 17:51 /var/log/secure-2016120
+
+======================================
+每两分钟更新时间
+[root@bestjiansong ~]# crontab -l
+*/2 * * * * /usr/sbin/ntpdate time.nist.gov > /dev/null 2>&1
+
+定时任务的种类：
+*****1.crond  守护进程，一直运行着的。
+		crontab 设置命令 -l list -e edit
+
+[root@bestjiansong ~]# chkconfig --list crond
+crond           0:off   1:off   2:on    3:on    4:on    5:on    6:off
+
+2.at 一次性
+[root@bestjiansong ~]# chkconfig --list atd
+atd             0:off   1:off   2:off   3:off   4:off   5:off   6:off
+
+3.anacron 
+
+=========================================
+
+指定用户下的定时任务
+[root@bestjiansong ~]# id yujiansong
+uid=500(yujiansong) gid=500(yujiansong) groups=500(yujiansong)
+[root@bestjiansong ~]# id laosongsan
+uid=502(laosongsan) gid=502(laosongsan) groups=502(laosongsan)
+[root@bestjiansong ~]# id songsan
+uid=501(songsan) gid=501(songsan) groups=501(songsan)
+
+[root@bestjiansong ~]# crontab -u songsan -l
+no crontab for songsan
+
+[root@bestjiansong ~]# crontab -u songsan -e
+
+*/2 * * * * /usr/sbin/ntpdate time.nist.gov > /dev/null 2>&1
+
+[root@bestjiansong ~]# crontab -u songsan -l
+*/2 * * * * /usr/sbin/ntpdate time.nist.gov > /dev/null 2>&1
+
+查看文件
+[root@bestjiansong ~]# cat /var/spool/cron/songsan
+*/2 * * * * /usr/sbin/ntpdate time.nist.gov > /dev/null 2>&1
+
+或者
+[root@bestjiansong ~]# su - songsan
+[songsan@bestjiansong ~]$ crontab -l
+*/2 * * * * /usr/sbin/ntpdate time.nist.gov > /dev/null 2>&1
+
+[root@bestjiansong ~]# ls -l `which crontab`
+-rwsr-xr-x. 1 root root 47520 Jul 19  2011 /usr/bin/crontab
+
+==================================
+
+[root@bestjiansong ~]# chkconfig --list crond
+crond           0:off   1:off   2:on    3:on    4:on    5:on    6:off
+
+打印yujiansong到/tmp/test1.txt定时任务
+
+[root@bestjiansong tmp]# crontab -e
+*/2 * * * * /usr/sbin/ntpdate time.nist.gov > /dev/null 2>&1
+
+* * * * * echo yujiansong >> /tmp/test1.txt
+
+查询
+[root@bestjiansong ~]# tail -f /tmp/test1.txt 
+yujiansong
+yujiansong
+yujiansong
+
+======================================
+1）创建目录和编写jiansong.sh脚本
+2） 书写定时任务 crontab
+
+[root@bestjiansong shellscript]# echo 'date +%F' >jiansong.sh
+[root@bestjiansong shellscript]# cat jiansong.sh 
+date +%F
+
+[root@bestjiansong shellscript]# pwd
+/tmp/shellscript
+[root@bestjiansong shellscript]# sh jiansong.sh 
+2016-12-07
+[root@bestjiansong shellscript]# /bin/sh jiansong.sh 
+2016-12-07
+
+=================================
+
+> /dev/null 2>&1 
+
+null是一个名叫null小桶的东西，将输出重定向到它的好处是不会因为输出的内容过多而导致文件大小不断的增加。其实，你就认为null就是什么都没有，也就是，将命令的输出扔弃掉了。
+
+1表示标准输出，2表示标准错误输出，2>&1表示将标准错误输出重定向到标准输出，这样，程序或者命令的正常输出和错误输出就可以在标准输出输出。
+
+一般来讲标准输出和标准错误输出都是屏幕，那为什么还要这么用呢？原因是标准输出的重定向。你的例子是重定向到了null，如果重定向到文件，例如：
+dir > out.txt 
+表示标准输出重定向到out.txt文件。此时如果dir命令出错，那么错误信息不会输出到out.txt文件，错误信息仍然会输出到屏幕——标准错误输出。为了使正确的信息和错误的信息都重定向到out.txt文件，那么需要将错误信息的标准错误输出重定向到标准输出。即命令如下：
+dir > out.txt 2>&1
+重定向到null是一个道理。
+dir > null 2>&1
+
+==================================
+
+[root@bestjiansong shellscript]# crontab -e
+*/2 * * * * /usr/sbin/ntpdate time.nist.gov > /dev/null 2>&1
+
+#* * * * * echo yujiansong >> /tmp/test1.txt
+
+#print datetime
+00 09,14 * * 6,0 /bin/sh /tmp/jiansong.sh > /dev/null 2>&1
+                         
+						 (/bin/sh /tmp/jiansong.sh > /dev/null 2>&1 最好是从命令行复制，减少出错)
+						 
+=================================
+1.定时任务规则加必要的注释
+2.执行shell脚本前面加 /bin/sh
+3.定时任务的结尾加 > /dev/null 2>&1 
+4.定时任务或命令和程序最好写到脚本里执行
+5.在指定的用户下执行相关的定时任务
+6.生产任务程序不要随意打印输出信息
+		tar zcf echo 123 >a.log 
+7.定时任务执行的脚本要规范路径
+8.配置定时任务规范操作过程
+===============================
+
+1.每隔2小时 将系统文件 /etc/services 文件打包备份到 /tmp 下（每次备份按时间生成不同的备份包）
+
+1).到目标内容的上级目录打包
+2).打包的频率是分的话，包名必须精确到分
+3).确保命令行正确，然后写到脚本里
+4).定时任务或程序最好在脚本里执行
+5).测试脚本正确性(定时任务怎么写，命令行就怎么测试)
+6).脚本测试好了，命令行的命令也要复制
+[root@bestjiansong shellscript]# cd /etc/
+[root@bestjiansong etc]# tar zcvf /tmp/services.tar.gz ./services 
+./services
+
+[root@bestjiansong etc]# tar zcvf /tmp/services_$(date +%F-%H).tar.gz ./services 
+./services
+
+[root@bestjiansong etc]# ls -l /tmp/services_2016-12-07-21.tar.gz 
+-rw-r--r-- 1 root root 127319 Dec  7 21:35 /tmp/services_2016-12-07-21.tar.gz
+
+root@bestjiansong shellscript]# vim data_tar.sh
+#!/bin/bash
+# yujiansong
+
+cd /etc/ && tar zcf /tmp/services_$(date +%F-%H).tar.gz ./services
+
+
+
+
+[root@bestjiansong shellscript]# /bin/sh /tmp/shellscript/data_tar.sh 
+[root@bestjiansong shellscript]# ll /tmp/
+-rw-r--r--  1 root root 127319 Dec  7 21:51 services_2016-12-07-21.tar.gz
+
+
+[root@bestjiansong shellscript]# crontab -e
+
+#############################
+00 */2 * * * /bin/sh /tmp/shellscript/data_tar.sh > /dev/null 2>&1
+
+
+
+
+2.每天晚上12点，打包站点目录 /var/www/html 备份到 /data 目录下（每次备份按时间生成不通的备份包）
+
+==========================================
+
+企业生产场景如何调试 crontab 定时任务 
+工作中调试定时任务的方法：
+
+1.增加执行任务频率调试任务
+代码发布： 个人开发环境---办公测试环境---IDC机房测试环境---IDC正式环境(分组，灰度发布)
+2.调整系统时间调试任务
+3.通过脚本日志调试定时任务
+4.注意一些任务命令带来的问题
+5.注意环境变量导致的定时任务故障
+6.通过crond 定时任务服务日志调试定时任务 (/var/log/cron)
+
+==========================================
+
+crontab定时任务生产应用问题
+1.系统环境变量问题
+2.定时任务要用绝对路径
+3.脚本权限问题 /bin/sh 
+4.时间变量问题用反斜线 \% 转义，最好用脚本
+5. >/dev/null 2 &>1 
+6.定时任务规则之前加注释
+7.使用脚本程序代替命令定时任务
+8.不免不必要的程序输出
+9.切到目标目录的上一级打包目录
+10.定时任务中的程序命令尽量用全路径
+
+===========================================
