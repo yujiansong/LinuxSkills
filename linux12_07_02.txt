@@ -1,0 +1,311 @@
+
+==================================
+NFS 网络文件系统
+资料： http://atong.blog.51cto.com/2393905/1343950
+
+作用：一般存储共享视频，图片 附件等静态资源文件
+
+
+NFS 服务端部署环境准备
+
+服务器系统                       角色               IP
+CentOS6.3 x86_64             NFS-SERVER         192.168.150.133
+
+CentOS6.3 x86_64             NFS-CLIENT1        192.168.150.130
+
+CentOS6.3 x86_64             NFS-CLIENT2        192.168.150.134
+
+NFS服务端操作系统及内核版本信息
+[root@nfs-server ~]# cat /etc/redhat-release
+CentOS release 6.3 (Final)
+
+[root@nfs-server ~]# uname -r
+2.6.32-279.el6.x86_64
+
+
+NFS客户端操作系统及内核版本信息
+[root@nfs-server ~]# cat /etc/redhat-release
+CentOS release 6.3 (Final)
+
+[root@nfs-server ~]# uname -r
+2.6.32-279.el6.x86_64
+
+
+NFS server端设置
+
+1. NFS软件列表
+
+nfs-utils     NFS的主程序
+
+rpcbind       RPC主程序
+
+2.查询并安装
+[root@nfs-server ~]# rpm -qa nfs-utils rpcbind
+[root@nfs-server ~]# yum install nfs-utils rpcbind -y
+安装完成后查询
+[root@nfs-server ~]# rpm -qa nfs-utils rpcbind
+rpcbind-0.2.0-12.el6.x86_64
+nfs-utils-1.2.3-70.el6_8.2.x86_64
+
+============================
+
+启动NFS服务端 rpcbind 
+[root@nfs-server ~]# /etc/init.d/rpcbind status
+rpcbind is stopped
+[root@nfs-server ~]# /etc/init.d/rpcbind start
+Starting rpcbind:                                          [  OK  ]
+[root@nfs-server ~]# /etc/init.d/rpcbind status
+rpcbind (pid  1805) is running...
+
+[root@nfs-server ~]# lsof -i :111
+COMMAND  PID USER   FD   TYPE DEVICE SIZE/OFF NODE NAME
+rpcbind 1805  rpc    6u  IPv4  13061      0t0  UDP *:sunrpc 
+rpcbind 1805  rpc    8u  IPv4  13066      0t0  TCP *:sunrpc (LISTEN)
+rpcbind 1805  rpc    9u  IPv6  13068      0t0  UDP *:sunrpc 
+rpcbind 1805  rpc   11u  IPv6  13071      0t0  TCP *:sunrpc (LISTEN)
+
+[root@nfs-server ~]# netstat -lntup|grep rpcbind
+tcp        0      0 0.0.0.0:111                 0.0.0.0:*                   LISTEN      1805/rpcbind        
+tcp        0      0 :::111                      :::*                        LISTEN      1805/rpcbind        
+udp        0      0 0.0.0.0:111                 0.0.0.0:*                               1805/rpcbind        
+udp        0      0 0.0.0.0:708                 0.0.0.0:*                               1805/rpcbind        
+udp        0      0 :::111                      :::*                                    1805/rpcbind        
+udp        0      0 :::708                      :::*                                    1805/rpcbind        
+
+[root@nfs-server ~]# chkconfig --list rpcbind
+rpcbind         0:off   1:off   2:on    3:on    4:on    5:on    6:off
+
+[root@nfs-server ~]# rpcinfo -p localhost
+   program vers proto   port  service
+    100000    4   tcp    111  portmapper
+    100000    3   tcp    111  portmapper
+    100000    2   tcp    111  portmapper
+    100000    4   udp    111  portmapper
+    100000    3   udp    111  portmapper
+    100000    2   udp    111  portmapper
+	
+启动NFS 
+[root@nfs-server ~]# /etc/init.d/nfs status
+rpc.svcgssd is stopped
+rpc.mountd is stopped
+nfsd is stopped
+rpc.rquotad is stopped
+
+[root@nfs-server ~]# /etc/init.d/nfs start
+Starting NFS services:                                     [  OK  ]
+Starting NFS quotas:                                       [  OK  ]
+Starting NFS mountd:                                       [  OK  ]
+Starting NFS daemon:                                       [  OK  ]
+Starting RPC idmapd:                                       [  OK  ]
+
+[root@nfs-server ~]# /etc/init.d/nfs status
+rpc.svcgssd is stopped
+rpc.mountd (pid 2461) is running...
+nfsd (pid 2476 2475 2474 2473 2472 2471 2470 2469) is running...
+rpc.rquotad (pid 2457) is running...
+
+#NFS主端口：2049
+[root@nfs-server ~]# netstat -lntup|grep 2049
+tcp        0      0 0.0.0.0:2049                0.0.0.0:*                   LISTEN      -                   
+tcp        0      0 :::2049                     :::*                        LISTEN      -                   
+udp        0      0 0.0.0.0:2049                0.0.0.0:*                               -                   
+udp        0      0 :::2049                     :::*                                    -    
+
+
+[root@nfs-server ~]# rpcinfo -p localhost
+   program vers proto   port  service
+    100000    4   tcp    111  portmapper
+    100000    3   tcp    111  portmapper
+    100000    2   tcp    111  portmapper
+    100000    4   udp    111  portmapper
+    100000    3   udp    111  portmapper
+    100000    2   udp    111  portmapper
+    ...
+    100003    2   tcp   2049  nfs
+    100003    3   tcp   2049  nfs
+    ...
+
+[root@nfs-server ~]# chkconfig --list nfs
+nfs             0:off   1:off   2:off   3:off   4:off   5:off   6:off
+
+[root@nfs-server ~]# chkconfig nfs on
+
+[root@nfs-server ~]# chkconfig --list nfs
+nfs             0:off   1:off   2:on    3:on    4:on    5:on    6:off
+
+一般用rc.local 管理
+[root@nfs-server ~]# vi /etc/rc.local 
+#!/bin/sh
+#
+# This script will be executed *after* all the other init scripts.
+# You can put your own initialization stuff in here if you don't
+# want to do the full Sys V style init stuff.
+
+touch /var/lock/subsys/local
+
+mount -t ext4 -o loop,noatime,noexec /dev/sdb1/ /mnt
+/etc/init.d/rpcbind start
+/etc/init.d/nfs start
+
+=============================================
+
+NFS 服务常见进程详解说明
+
+[root@nfs-server ~]# ps -ef|egrep "rpc|nfs"
+rpc       1805     1  0 09:07 ?        00:00:00 rpcbind
+root      2261     2  0 09:16 ?        00:00:00 [rpciod/0]
+root      2262     2  0 09:16 ?        00:00:00 [rpciod/1]
+root      2457     1  0 09:17 ?        00:00:00 rpc.rquotad              #磁盘配额进程
+root      2461     1  0 09:17 ?        00:00:00 rpc.mountd				 #权限管理验证
+root      2467     2  0 09:17 ?        00:00:00 [nfsd4]
+root      2468     2  0 09:17 ?        00:00:00 [nfsd4_callbacks]
+root      2469     2  0 09:17 ?        00:00:00 [nfsd]                   #主进程，管理登录,ID身份识别
+root      2470     2  0 09:17 ?        00:00:00 [nfsd]
+root      2471     2  0 09:17 ?        00:00:00 [nfsd]
+root      2472     2  0 09:17 ?        00:00:00 [nfsd]
+root      2473     2  0 09:17 ?        00:00:00 [nfsd]
+root      2474     2  0 09:17 ?        00:00:00 [nfsd]
+root      2475     2  0 09:17 ?        00:00:00 [nfsd]
+root      2476     2  0 09:17 ?        00:00:00 [nfsd]
+root      2505     1  0 09:18 ?        00:00:00 rpc.idmapd
+root      2613  1514  0 09:33 pts/0    00:00:00 egrep rpc|nfs
+
+NFS配置文件
+[root@nfs-server ~]# ls -l /etc/exports 
+-rw-r--r--. 1 root root 0 Jan 12  2010 /etc/exports
+============================================
+
+配置NFS服务端
+共享 /data 目录
+[root@nfs-server ~]# vi /etc/exports 
+/data   192.168.150.*(rw,sync)
+
+[root@nfs-server ~]# cat /etc/exports 
+/data   192.168.150.*(rw,sync)
+
+[root@nfs-server ~]# mkdir /data
+
+[root@nfs-server ~]# /etc/init.d/nfs reload
+
+[root@nfs-server ~]# exportfs -rv
+exporting 192.168.150.*:/data
+
+共享记录
+[root@nfs-server ~]# showmount -e 127.0.0.1
+Export list for 127.0.0.1:
+/data 192.168.150.*
+
+本机测试挂载并查看
+[root@nfs-server ~]# mount -t nfs 192.168.150.133:/data /mnt
+
+[root@nfs-server ~]# df -h
+Filesystem            Size  Used Avail Use% Mounted on
+/dev/sda3             7.2G  1.5G  5.5G  21% /
+tmpfs                 366M     0  366M   0% /dev/shm
+/dev/sda1             194M   28M  157M  15% /boot
+192.168.150.133:/data
+                      7.2G  1.5G  5.5G  21% /mnt
+
+					  
+[root@nfs-server ~]# ls /mnt/
+[root@nfs-server ~]# touch /data/jiansong.txt
+[root@nfs-server ~]# ls /mnt/
+jiansong.txt
+
+
+===================================
+客户端启动：
+
+[root@lamp01 ~]# /etc/init.d/rpcbind start
+Starting rpcbind:                                          [  OK  ]
+[root@lamp01 ~]# chkconfig rpcbind on
+
+[root@lamp01 ~]# /etc/init.d/rpcbind status
+rpcbind (pid  2366) is running...
+
+[root@lamp01 ~]# showmount -e 192.168.150.133
+Export list for 192.168.150.133:
+/data 192.168.150.*
+
+挂载
+[root@WebLamp01 ~]# mount -t nfs 192.168.150.133:/data /mnt
+[root@WebLamp01 ~]# mount
+/dev/sda3 on / type ext4 (rw)
+proc on /proc type proc (rw)
+sysfs on /sys type sysfs (rw)
+devpts on /dev/pts type devpts (rw,gid=5,mode=620)
+tmpfs on /dev/shm type tmpfs (rw,rootcontext="system_u:object_r:tmpfs_t:s0")
+/dev/sda1 on /boot type ext4 (rw)
+none on /proc/sys/fs/binfmt_misc type binfmt_misc (rw)
+sunrpc on /var/lib/nfs/rpc_pipefs type rpc_pipefs (rw)
+192.168.150.133:/data on /mnt type nfs (rw,vers=4,addr=192.168.150.133,clientaddr=192.168.150.131
+
+[root@WebLamp01 ~]# df -h
+Filesystem            Size  Used Avail Use% Mounted on
+/dev/sda3             7.2G  1.4G  5.5G  21% /
+tmpfs                 366M     0  366M   0% /dev/shm
+/dev/sda1             194M   28M  157M  15% /boot
+192.168.150.133:/data
+                      7.2G  1.5G  5.5G  21% /mnt
+					  
+==================================
+在服务器段删除jiansong.txt，之后在客户端查看还是否存在
+[root@nfs-server ~]# rm -f /data/jiansong.txt 
+[root@nfs-server ~]# ll /mnt/
+total 0
+
+在客户端已经找不到jiansong.txt
+[root@WebLamp01 ~]# ls -l /mnt/
+total 0
+
+在客户端试图写文件发现不行，
+[root@WebLamp01 ~]# cd /mnt/
+[root@WebLamp01 mnt]# touch yu.txt
+touch: cannot touch `yu.txt': Permission denied
+
+是因为服务端 默认为65534权限
+[root@nfs-server ~]# cat /etc/exports 
+/data   192.168.150.*(rw,sync)
+[root@nfs-server ~]# cat /var/lib/nfs/etab 
+/data   192.168.150.*(rw,sync,wdelay,hide,nocrossmnt,secure,root_squash,no_all_squash,no_subtree_check,secure_locks,acl,anonuid=65534,anongid=65534,sec=sys,rw,root_squash,no_all_squash)
+
+可以给权限让客户端写文件
+[root@nfs-server ~]# ls -ld /data/
+drwxr-xr-x 2 root root 4096 Dec  8 11:27 /data/
+[root@nfs-server ~]# grep 65534 /etc/passwd
+nfsnobody:x:65534:65534:Anonymous NFS User:/var/lib/nfs:/sbin/nologin
+[root@nfs-server ~]# chown -R nfsnobody /data
+
+[root@nfs-server ~]# ls -ld /data/
+drwxr-xr-x 2 nfsnobody root 4096 Dec  8 11:27 /data/
+
+此时，可以再客户端写文件
+[root@WebLamp01 mnt]# touch weblamp01.txt
+[root@WebLamp01 mnt]# ls -l
+total 0
+-rw-r--r--. 1 nfsnobody nfsnobody 0 Dec  8  2016 weblamp01.txt
+
+在服务端写文件
+[root@nfs-server mnt]# touch nfsserver.txt
+
+在客户端查看
+[root@WebLamp01 mnt]# ls -l
+total 0
+-rw-r--r--. 1 nfsnobody nfsnobody 0 Dec  8  2016 nfsserver.txt
+-rw-r--r--. 1 nfsnobody nfsnobody 0 Dec  8 11:39 weblamp01.txt
+
+============================
+因为重启之后有没有，所以把mount -t nfs 192.168.150.133:/data /mnt 放在/etc/rc.local里
+
+[root@WebLamp01 mnt]# vi /etc/rc.local 
+#!/bin/sh
+#
+# This script will be executed *after* all the other init scripts.
+# You can put your own initialization stuff in here if you don't
+# want to do the full Sys V style init stuff.
+
+touch /var/lock/subsys/local
+/etc/init.d/rpcbind start
+mount -t nfs 192.168.150.133:/data /mnt
+=============================
+
