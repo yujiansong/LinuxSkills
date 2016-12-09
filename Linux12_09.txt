@@ -1,0 +1,511 @@
+
+============================
+NFS客户端普通用户无法创建文件
+
+[yujiansong@WebLamp01 mnt]$ touch yujiansong.txt
+touch: cannot touch `yujiansong.txt': Permission denied
+
+[yujiansong@lnmp02 mnt]$ touch yujiansong_weblamp02.txt
+touch: cannot touch `yujiansong_weblamp02.txt': Permission denied
+
+在服务端修改/etc/exports 
+
+[root@nfs-server mnt]# vi /etc/exports 
+#/data  192.168.150.*(rw,sync)
+/data   192.168.150.0/24(rw,sync,all_squash)
+
+[root@nfs-server mnt]# cat /etc/exports 
+#/data  192.168.150.*(rw,sync)
+/data   192.168.150.0/24(rw,sync,all_squash)
+
+之后重启 rpcbind  nfs 
+
+在客户端便可以创建
+[yujiansong@WebLamp01 mnt]$ touch yujiansong_lp01.txt
+[yujiansong@WebLamp01 mnt]$ echo hello > yujiansong_lp01.txt 
+[yujiansong@WebLamp01 mnt]$ cat yujiansong_lp01.txt 
+hello
+
+[yujiansong@lnmp02 mnt]$ touch yujiansong_lp02.txt
+[yujiansong@lnmp02 mnt]$ ls
+nfssercer.txt  weblamp1.txt  weblnmp2.txt  yujiansong_lp02.txt
+
+==================================================================
+
+             Rsync数据同步工具应用指南
+http://mofansheng.blog.51cto.com/8792265/1637685
+
+
+全网服务器数据备份解决方案提出及负责实施
+=================================================
+客户端命令参数：
+
+第一种工作模式： local
+rsync -avz /etc/hosts /tmp/ ====== cp 
+-avz --delete /null/ /tmp/ === rm
+
+
+
+把/etc/hosts 同步到 /tmp/   这种情况相当于 cp -a /etc/hosts /tmp/
+[root@nfs-server ~]# rsync -avz /etc/hosts /tmp/
+sending incremental file list
+hosts
+
+sent 152 bytes  received 31 bytes  366.00 bytes/sec
+total size is 187  speedup is 1.02
+
+
+#把/null/ /tmp/ 进行同步， 让/tmp/ 和 /null/ 相同  ，如果/null/ 为空 ，相当于rsync -avz --delete /null/ /tmp/ === rm
+[root@nfs-server ~]# rsync -avz --delete /null/ /tmp/
+
+===================
+第二种工作模式：
+push:
+rsync -avzP -e 'ssh -p 22' /tmp/ root@192.168.150.131:/tmp/
+
+pull:
+rsync -avzP -e 'ssh -p 22' root@192.168.150.131:/tmp/ /opt/
+
+借助ssh通道 推送数据
+
+[root@nfs-server tmp]# ls
+etc  hosts  services_2016-12-07-21.tar.gz  services.tar.gz  shellscript  test1.txt  yu.txt
+
+把 服务器端的/tmp/ 通过 ssh通道 推送到root@192.168.150.131的/tmp/ 下
+[root@nfs-server tmp]# rsync -avzP -e 'ssh -p 22' /tmp/ root@192.168.150.131:/tmp/
+
+The authenticity of host '192.168.150.131 (192.168.150.131)' can't be established.
+RSA key fingerprint is c5:e6:94:9c:de:1e:f6:a9:3e:fd:2b:19:4a:7c:29:d0.
+Are you sure you want to continue connecting (yes/no)? yes
+Warning: Permanently added '192.168.150.131' (RSA) to the list of known hosts.
+root@192.168.150.131's password: 
+sending incremental file list
+./
+hosts
+         187 100%    0.00kB/s    0:00:00 (xfer#1, to-check=53/55)
+services.tar.gz
+      127319 100%    1.13MB/s    0:00:00 (xfer#2, to-check=52/55)
+services_2016-12-07-21.tar.gz
+      127319 100%  317.18kB/s    0:00:00 (xfer#3, to-check=51/55)
+yu.txt
+           0 100%    0.00kB/s    0:00:00 (xfer#5, to-check=49/55)
+.ICE-unix/
+etc/
+etc/gshadow
+         469 100%    0.83kB/s    0:00:00 (xfer#6, to-check=45/55)
+etc/hosts
+         158 100%    0.27kB/s    0:00:00 (xfer#7, to-check=44/55)
+etc/shadow
+         699 100%    1.17kB/s    0:00:00 (xfer#8, to-check=43/55)
+...
+shellscript/yu.txt
+           0 100%    0.00kB/s    0:00:00 (xfer#43, to-check=0/55)
+
+sent 267536 bytes  received 876 bytes  4036.27 bytes/sec
+total size is 274314  speedup is 1.02
+
+查看root@192.168.150.131的/tmp/
+
+推送前
+[root@WebLamp01 tmp]# ls
+推送后
+[root@WebLamp01 tmp]# ls
+etc  hosts  services_2016-12-07-21.tar.gz  services.tar.gz  shellscript  test1.txt  yu.txt
+
+
+借助ssh通道 拉取数据
+
+[root@nfs-server tmp]# rsync -avzP -e 'ssh -p 22' root@192.168.150.131:/tmp/ /opt/
+root@192.168.150.131's password: 
+
+receiving incremental file list
+./
+hosts
+         187 100%  182.62kB/s    0:00:00 (xfer#1, to-check=54/56)
+services.tar.gz
+      127319 100%  963.84kB/s    0:00:00 (xfer#2, to-check=53/56)
+services_2016-12-07-21.tar.gz
+      127319 100%  570.34kB/s    0:00:00 (xfer#3, to-check=52/56)
+		   ...
+shellscript/yu.txt
+           0 100%    0.00kB/s    0:00:00 (xfer#44, to-check=0/56)
+
+sent 894 bytes  received 267607 bytes  4438.03 bytes/sec
+total size is 274314  speedup is 1.02
+
+之后查询
+[root@nfs-server tmp]# ls /opt/
+etc  hosts  rh  services_2016-12-07-21.tar.gz  services.tar.gz  shellscript  test1.txt  weblamp01.txt  yu.txt
+
+第三种工作模式：
+dameon
+
+==========================================
+backup端配置：
+
+[root@backup ~]# rsync --version
+rsync  version 3.0.6  protocol version 30
+Copyright (C) 1996-2009 by Andrew Tridgell, Wayne Davison, and others.
+Web site: http://rsync.samba.org/
+Capabilities:
+    64-bit files, 64-bit inums, 64-bit timestamps, 64-bit long ints,
+    socketpairs, hardlinks, symlinks, IPv6, batchfiles, inplace,
+    append, ACLs, xattrs, iconv, symtimes
+
+rsync comes with ABSOLUTELY NO WARRANTY.  This is free software, and you
+are welcome to redistribute it under certain conditions.  See the GNU
+General Public Licence for details.
+
+[root@backup ~]# rpm -qa rsync
+rsync-3.0.6-9.el6.x86_64
+
+[root@backup ~]# ll /etc/exports 
+-rw-r--r--. 1 root root 0 Jan 12  2010 /etc/exports
+
+[root@backup ~]# touch /etc/rsyncd.conf
+
+配置文件设置：
+
+[root@backup ~]# cat /etc/rsyncd.conf 
+uid = rsync
+gid = rsync
+use chroot = no
+max connections = 2000
+timeout = 600
+pid file = /var/run/rsyncd.pid
+lock file = /var/run/rsync.lock
+log file = /var/log/rsyncd.log
+ignore errors
+read only = false
+list = false
+hosts allow = 192.168.150.0/24
+hosts deny = 0.0.0.0/32
+auth users = rsync_backup
+secrets file = /etc/rsync.password
+##################################
+[backup]
+comment = backup server by yujiansong 13:41 2016-12-09
+path = /backup
+			 
+======================			 
+启动
+[root@backup ~]# rsync --daemon
+查询
+[root@backup ~]# ps -ef|grep rsync|grep -v grep
+root      4824     1  0 15:12 ?        00:00:00 rsync --daemon
+
+检查端口：
+[root@backup ~]# netstat -lntup|grep rsync
+tcp        0      0 0.0.0.0:873                 0.0.0.0:*                   LISTEN      4824/rsync          
+tcp        0      0 :::873                      :::*                        LISTEN      4824/rsync     
+或者
+[root@backup ~]# ss -lntup|grep rsync
+tcp    0      5                          :::873                       :::*      users:(("rsync",4824,5))
+tcp    0      5                           *:873                        *:*      users:(("rsync",4824,3))
+或者
+[root@backup ~]# lsof -i :873
+COMMAND  PID USER   FD   TYPE DEVICE SIZE/OFF NODE NAME
+rsync   4824 root    3u  IPv4  26287      0t0  TCP *:rsync (LISTEN)
+rsync   4824 root    5u  IPv6  26288      0t0  TCP *:rsync (LISTEN)
+
+[root@backup ~]# useradd rsync -s /sbin/nologin
+
+[root@backup ~]# id rsync
+uid=504(rsync) gid=504(rsync) groups=504(rsync)
+
+[root@backup ~]# mkdir /backup
+
+[root@backup ~]# chown -R rsync /backup/
+
+[root@backup ~]# ls -ld /backup/
+drwxr-xr-x 2 rsync root 4096 Dec  9 15:25 /backup/
+
+[root@backup ~]# echo "rsync_backup:123456" > /etc/rsync.password
+[root@backup ~]# cat /etc/rsync.password 
+rsync_backup:123456
+
+[root@backup ~]# ll /etc/rsync.password 
+-rw-r--r-- 1 root root 20 Dec  9 15:30 /etc/rsync.password
+
+[root@backup ~]# chmod 600 /etc/rsync.password 
+
+[root@backup ~]# ll /etc/rsync.password 
+-rw------- 1 root root 20 Dec  9 15:30 /etc/rsync.password
+
+====================================
+
+rsync server 配置步骤
+
+1. vi/etc/rsyncd.conf  加入配置：
+
+uid = rsync
+gid = rsync
+use chroot = no
+max connections = 2000
+timeout = 600
+pid file = /var/run/rsyncd.pid
+lock file = /var/run/rsync.lock
+log file = /var/log/rsyncd.log
+ignore errors
+read only = false
+list = false
+hosts allow = 192.168.150.0/24
+hosts deny = 0.0.0.0/32
+auth users = rsync_backup
+secrets file = /etc/rsync.password
+##################################
+[backup]
+comment = backup server by yujiansong 13:41 2016-12-09
+path = /backup
+
+2.创建 rsync 用户，及共享的目录 /backup
+
+useradd rsync -s /sbin/nologin -M
+
+id rsync 
+
+mkdir /backup
+
+chown -R rsync /backup
+
+3.创建密码文件
+[root@backup ~]# echo "rsync_backup:123456" > /etc/rsync.password
+[root@backup ~]# cat /etc/rsync.password 
+rsync_backup:123456
+
+[root@backup ~]# chmod 600 /etc/rsync.password 
+
+4. rsync --daemon 
+   netstat -tlnup|grep rsync 
+   ps -ef|grep rsync|grep -v grep 
+   
+5. 加入到开机自启动
+   echo "rsync --daemon" >> /etc/rc.local 
+   cat /etc/rc.local 
+   
+===================================
+rsync 客户端：
+
+1.创建密码文件
+echo "123456" > /etc/rsync.password
+
+chmod 600 /etc/rsync.password
+
+ll -ld /etc/rsync.password 
+
+cat /etc/rsync.password
+
+2.rsync 
+
+push:
+rsync [OPTION...] SRC... [USER@]HOST::DEST
+
+rsync -avz /tmp/ rsync_backup@192.168.150.130::backup --password-file=/etc/rsync.password
+
+===============
+[root@backup ~]# ll /backup/
+total 0
+
+[root@WebLamp01 tmp]# ls
+etc  hosts  services_2016-12-07-21.tar.gz  services.tar.gz  shellscript  test1.txt  weblamp01.txt  yu.txt
+
+[root@WebLamp01 tmp]# rsync -avz /tmp/ rsync_backup@192.168.150.130::backup --password-file=/etc/rsync.password   
+sending incremental file list
+./
+hosts
+services.tar.gz
+services_2016-12-07-21.tar.gz
+test1.txt
+weblamp01.txt
+yu.txt
+.ICE-unix/
+etc/
+...
+shellscript/sh16.sh
+shellscript/sh17.sh
+shellscript/sh18.sh
+shellscript/sh19.sh
+shellscript/yu.txt
+
+sent 267598 bytes  received 891 bytes  536978.00 bytes/sec
+total size is 274314  speedup is 1.02
+
+推送完成后再 backup端查看一下
+[root@backup ~]# ll /backup/
+total 272
+drwxr-xr-x 5 rsync rsync   4096 Nov 22 10:31 etc
+-rw-r--r-- 1 rsync rsync    187 Nov 26 16:12 hosts
+-rw-r--r-- 1 rsync rsync 127319 Dec  7 21:51 services_2016-12-07-21.tar.gz
+-rw-r--r-- 1 rsync rsync 127319 Dec  7 21:29 services.tar.gz
+drwxr-xr-x 2 rsync rsync   4096 Dec  7 21:50 shellscript
+-rw-r--r-- 1 rsync rsync    176 Dec  7 17:29 test1.txt
+-rw-r--r-- 1 rsync rsync      0 Dec  8 20:01 weblamp01.txt
+-rw-r--r-- 1 rsync rsync      0 Dec  3 11:55 yu.txt
+
+=========
+在lnmp2 客户端推送文件
+
+[root@lnmp02 tmp]# ls
+lnmp02.txt
+[root@lnmp02 tmp]# echo "123456" > /etc/rsync.password
+[root@lnmp02 tmp]# chmod 600 /etc/rsync.password 
+[root@lnmp02 tmp]# ls -ld /etc/rsync.password 
+-rw------- 1 root root 7 Dec  9 16:11 /etc/rsync.password
+[root@lnmp02 tmp]# cat /etc/rsync.password 
+123456
+[root@lnmp02 tmp]# rsync -avz /tmp/ rsync_backup@192.168.150.130::backup --password-file=/etc/rsync.password 
+sending incremental file list
+./
+lnmp02.txt
+.ICE-unix/
+
+sent 113 bytes  received 34 bytes  6.84 bytes/sec
+total size is 0  speedup is 0.00
+
+推送完成后查看：
+[root@backup ~]# ll /backup/
+total 272
+drwxr-xr-x 5 rsync rsync   4096 Nov 22 10:31 etc
+-rw-r--r-- 1 rsync rsync    187 Nov 26 16:12 hosts
+-rw-r--r-- 1 rsync rsync      0 Dec  9 16:10 lnmp02.txt  #lnmp02客户端推送的文件
+-rw-r--r-- 1 rsync rsync 127319 Dec  7 21:51 services_2016-12-07-21.tar.gz
+-rw-r--r-- 1 rsync rsync 127319 Dec  7 21:29 services.tar.gz
+drwxr-xr-x 2 rsync rsync   4096 Dec  7 21:50 shellscript
+-rw-r--r-- 1 rsync rsync    176 Dec  7 17:29 test1.txt
+-rw-r--r-- 1 rsync rsync      0 Dec  8 20:01 weblamp01.txt
+-rw-r--r-- 1 rsync rsync      0 Dec  3 11:55 yu.txt
+
+====================================================
+Rsync 故障答疑
+
+[root@WebLamp01 tmp]# telnet 192.168.150.130
+Trying 192.168.150.130...
+telnet: connect to address 192.168.150.130: Connection refused
+
+[root@backup ~]# lsof -i :873
+COMMAND  PID USER   FD   TYPE DEVICE SIZE/OFF NODE NAME
+rsync   4824 root    3u  IPv4  26287      0t0  TCP *:rsync (LISTEN)
+rsync   4824 root    5u  IPv6  26288      0t0  TCP *:rsync (LISTEN)
+
+[root@WebLamp01 tmp]# telnet 192.168.150.130 873
+Trying 192.168.150.130...
+Connected to 192.168.150.130.
+Escape character is '^]'.
+@RSYNCD: 30.0
+
+======================================================
+
+不管 推拉 都是客户端操作
+
+从backup服务端backup拉取数据到客户端WebLamp01的/tmp/
+[root@backup ~]# ll /backup/
+total 0
+-rw-r--r-- 1 root root 0 Dec  9 16:36 backup.txt
+
+[root@WebLamp01 tmp]# rsync -avz rsync_backup@192.168.150.130::backup /tmp/ --password-file=/etc/rsync.password 
+receiving incremental file list
+./
+backup.txt
+.ICE-unix/
+
+sent 90 bytes  received 204 bytes  84.00 bytes/sec
+total size is 0  speedup is 0.00
+
+之后查询
+[root@WebLamp01 tmp]# ls
+backup.txt  lamp01.txt
+
+======================================================
+从backup服务端backup拉取数据到客户端lnmp02的/tmp/
+[root@lnmp02 tmp]# rsync -avz rsync_backup@192.168.150.130::backup /tmp/ --password-file=/etc/rsync.password 
+receiving incremental file list
+./
+backup.txt
+.ICE-unix/
+
+sent 90 bytes  received 204 bytes  196.00 bytes/sec
+total size is 0  speedup is 0.00
+[root@lnmp02 tmp]# ls
+backup.txt  lnmp02.txt
+
+=========================================
+安全性能优化：
+[root@backup ~]# netstat -lntup|grep rsync
+tcp        0      0 0.0.0.0:873                 0.0.0.0:*                   LISTEN      4824/rsync          
+tcp        0      0 :::873                      :::*                        LISTEN      4824/rsync 
+
+杀进程的方法：
+[root@backup ~]# pkill rsync
+[root@backup ~]# lsof -i :873 
+ 
+或者killall
+[root@backup ~]# killall rsync
+[root@backup ~]# killall rsync
+rsync: no process killed
+
+查询已被rsync进程杀死
+[root@backup ~]# ps -ef|grep rsync
+root      5416  5103  0 16:58 pts/0    00:00:00 grep --color=auto rsync
+
+启动rsync进程
+[root@backup ~]# rsync --daemon
+
+再查询进程
+[root@backup ~]# ps -ef|grep rsync
+root      5418     1  0 16:59 ?        00:00:00 rsync --daemon
+root      5420  5103  0 16:59 pts/0    00:00:00 grep --color=auto rsync
+
+或者kill pid(-)
+[root@backup ~]# kill `cat /var/run/rsyncd.pid `
+[root@backup ~]# ps -ef|grep rsync
+root      5449  5103  0 17:02 pts/0    00:00:00 grep --color=auto rsync
+
+=======================
+另一种拉取方式：
+[root@backup backup]# ls
+backup02.txt  backup.txt
+
+从backup服务端backup拉取数据到客户端WebLamp01的/tmp/
+[root@WebLamp01 tmp]# rsync -avz rsync://rsync_backup@192.168.150.130/backup /tmp/
+Password: 
+
+receiving incremental file list
+./
+backup02.txt
+
+sent 87 bytes  received 217 bytes  86.86 bytes/sec
+total size is 0  speedup is 0.00
+
+拉取之后查询
+[root@WebLamp01 tmp]# ls
+backup02.txt  backup.txt  lamp01.txt
+
+
+再backup服务端添加 back03.txt 之后，在客户端WebLamp01 再拉取
+[root@WebLamp01 tmp]# rsync -avz rsync://rsync_backup@192.168.150.130/backup /tmp/ --password-file=/etc/rsync.password 
+receiving incremental file list
+./
+back03.txt
+
+sent 87 bytes  received 257 bytes  688.00 bytes/sec
+total size is 6  speedup is 0.02
+
+[root@WebLamp01 tmp]# ls
+back03.txt  backup02.txt  backup.txt  lamp01.txt
+
+=============================
+Rsync 优点：
+1. 增量备份同步，支持Socket(daemon),集中备份。
+
+缺点：
+1.大量小文件比对的时候，比对时间比较长，有的时候 rsync进程停止
+	解决：打包同步    drbd(文件系统同步，复制block)
+	
+2.同步大文件，10g这样的大文件有时也会出问题，中断。未完整同步前，是隐藏文件。同步完成，改为正常文件。
+
+============================
+	
+
+
+  
+
