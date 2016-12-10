@@ -42,7 +42,7 @@ http://mofansheng.blog.51cto.com/8792265/1637685
 
 第一种工作模式： local
 rsync -avz /etc/hosts /tmp/ ====== cp 
--avz --delete /null/ /tmp/ === rm
+rsync -avz --delete /null/ /tmp/ === rm
 
 
 
@@ -504,8 +504,160 @@ Rsync 优点：
 2.同步大文件，10g这样的大文件有时也会出问题，中断。未完整同步前，是隐藏文件。同步完成，改为正常文件。
 
 ============================
+无差异同步  --delete
+远端backup下的内容：
+[root@backup backup]# ls
+back03.txt  backup02.txt  backup.txt
+
+本地WebLamp01下tmp下的内容
+[root@WebLamp01 tmp]# ls
+back03.txt  backup02.txt  backup.txt  lamp01.txt	
+
+进行同步：(本地拉取远端，和远端的相同)
+
+[root@WebLamp01 tmp]# rsync -avz --delete rsync://rsync_backup@192.168.150.130/backup /tmp/ --password-file=/etc/rsync.password 
+receiving incremental file list
+deleting lamp01.txt
+
+sent 65 bytes  received 208 bytes  42.00 bytes/sec
+total size is 6  speedup is 0.02
 	
+在查询本地下的 /tmp/
+[root@WebLamp01 tmp]# ls
+back03.txt  backup02.txt  backup.txt
 
+===========================
+远端backup下的内容：
+[root@backup backup]# ls
+back03.txt  backup02.txt  backup.txt
 
+本地WebLamp01下tmp下的内容
+[root@WebLamp01 tmp]# ls
+back03.txt  backup02.txt  backup.txt  weblamp01.txt
+
+进行同步：(本地推送远端，最终远端的和本地的相同)
+[root@WebLamp01 tmp]# rsync -avz --delete /tmp/ rsync://rsync_backup@192.168.150.130/backup/ --password-file=/etc/rsync.password 
+sending incremental file list
+./
+weblamp01.txt
+
+sent 193 bytes  received 31 bytes  34.46 bytes/sec
+total size is 6  speedup is 0.03
+
+查询远端backup 下的内容：(最终和本地WebLamp01下tmp的相同)
+[root@backup backup]# ls
+back03.txt  backup02.txt  backup.txt  weblamp01.txt
+
+===============================
+
+排除单个文件：
+
+[root@WebLamp01 tmp]# ls
+back03.txt  backup02.txt  backup.txt  weblamp01.txt  weblamp02.txt  weblamp03.txt
+
+排除weblamp03.txt， 然后推送到远端
+[root@WebLamp01 tmp]# rsync -avz --exclude=weblamp03.txt /tmp/ rsync://rsync_backup@192.168.150.130/backup --password-file=/etc/rsync.password 
+sending incremental file list
+./
+weblamp02.txt
+
+sent 207 bytes  received 31 bytes  36.62 bytes/sec
+total size is 6  speedup is 0.03
   
+在远端查询
+[root@backup backup]# ls
+back03.txt  backup02.txt  backup.txt  weblamp01.txt  weblamp02.txt
+
+==============================
+排除多个文件
+[root@WebLamp01 tmp]# rsync -avz --exclude={weblamp02.txt,weblamp03.txt} /tmp/ rsync://rsync_backup@192.168.150.130/backup --password-file=/etc/rsync.password                                             
+sending incremental file list
+
+sent 150 bytes  received 9 bytes  24.46 bytes/sec
+total size is 6  speedup is 0.04
+
+在远端查询
+[root@backup backup]# ls
+back03.txt  backup02.txt  backup.txt  weblamp01.txt  weblamp02.txt
+
+============================
+
+rsync 和 定时任务 实现企业级数据备份
+
+[root@WebLamp01 tmp]# mkdir /backup
+
+[root@WebLamp01 tmp]# ifconfig eth0|awk -F '[ :]+' 'NR==2 {print $4}'
+192.168.150.131
+
+[[root@WebLamp01 tmp]# mkdir /backup/`ifconfig eth0|awk -F '[ :]+' 'NR==2 {print $4}'`_$(date +%F) -p
+
+[root@WebLamp01 tmp]# cp /etc/rc.local /backup/192.168.150.131_2016-12-09/rc.local_$(date +%F)   
+   
+[root@WebLamp01 tmp]# ls /backup/192.168.150.131_2016-12-09/
+rc.local_2016-12-09
+
+写入脚本：
+[root@WebLamp01 scripts]# vim /server/scripts/bak.sh 
+#!/bin/bash
+#rsync and crond 
+# 2016/12/10    yujiansong
+
+path=/backup
+
+dir="`ifconfig eth0|awk -F '[ :]+' 'NR==2 {print $4}'`_$(date +%F)"
+
+mkdir $path/$dir -p && \
+
+/bin/cp /etc/rc.local $path/$dir/rc.local_$(date +%F) && \
+
+rsync -az $path/ rsync_backup@192.168.150.130::backup/ --password-file=/etc/rsync.password
+
+执行脚本，进行同步
+[root@WebLamp01 scripts]# /bin/bash /server/scripts/bak.sh 
+
+远端查询：
+[root@backup backup]# ll
+total 4
+drwxr-xr-x 2 rsync rsync 4096 Dec  9 02:59 192.168.150.131_2016-12-09
+
+写入定时任务
+[root@WebLamp01 scripts]# crontab -e
+*/2 * * * * /usr/sbin/ntpdate time.nist.gov > /dev/null 2>&1
+
+#####################################
+00 01 * * *  /bin/bash /server/scripts/bak.sh > /dev/null 2>&1
+
+=================
+把/server/scripts/bak.sh scp到 lnmp02  root@192.168.150.134:/tmp/下 
+[root@WebLamp01 scripts]# scp /server/scripts/bak.sh root@192.168.150.134:/tmp/
+
+The authenticity of host '192.168.150.134 (192.168.150.134)' can't be established.
+RSA key fingerprint is c5:e6:94:9c:de:1e:f6:a9:3e:fd:2b:19:4a:7c:29:d0.
+Are you sure you want to continue connecting (yes/no)? yes
+Warning: Permanently added '192.168.150.134' (RSA) to the list of known hosts.
+
+root@192.168.150.134's password: 
+bak.sh                                                                                 100%  315     0.3KB/s   00:00 
+
+之后查询lnmp02的 tmp/
+[root@lnmp02 tmp]# ls
+backup.txt  bak.sh  lnmp02.txt
+
+[root@lnmp02 tmp]# mkdir -p /server/scripts
+
+[root@lnmp02 tmp]# cp /tmp/bak.sh /server/scripts/
+
+执行脚本
+[root@lnmp02 tmp]# /bin/bash /server/scripts/bak.sh 
+
+检测远端
+[root@backup backup]# ll /backup/192.168.150.134_2016-12-10/
+total 4
+-rwxr-xr-x 1 rsync rsync 340 Dec 10 01:58 rc.local_2016-12-10
+
+写入定时任务
+[root@lnmp02 tmp]# crontab -e
+00 01 * * *  /bin/bash /server/scripts/bak.sh > /dev/null 2>&1
+
+============================================
 
