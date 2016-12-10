@@ -1,0 +1,536 @@
+
+===============================
+nfs-server 端推送到 backup 端 
+[root@nfs-server ~]# echo 123456 > /etc/rsync.password
+
+[root@nfs-server ~]# cat /etc/rsync.password 
+123456
+
+[root@nfs-server ~]# chmod 600 /etc/rsync.password 
+
+[root@nfs-server ~]# ls -l /etc/rsync.password 
+-rw------- 1 root root 7 Dec 10 09:44 /etc/rsync.password
+
+[root@nfs-server ~]# ll /data/
+total 12
+-rw-r--r-- 1 nfsnobody nfsnobody 19 Dec  9 10:26 nfssercer.txt
+-rw-r--r-- 1 nfsnobody nfsnobody 16 Dec  9 10:25 weblamp1.txt
+-rw-r--r-- 1 nfsnobody nfsnobody 19 Dec  9 10:25 weblnmp2.txt
+
+[root@nfs-server ~]# showmount -e localhost
+Export list for localhost:
+/data 192.168.150.0/24
+
+把nfs-server端的/data/ 数据推送到192.168.150.130的backup下
+[root@nfs-server ~]# rsync -avz /data rsync_backup@192.168.150.130::backup --password-file=/etc/rsync.password 
+sending incremental file list
+data/
+data/nfssercer.txt
+data/weblamp1.txt
+data/weblnmp2.txt
+
+sent 305 bytes  received 69 bytes  35.62 bytes/sec
+total size is 54  speedup is 0.14
+
+root@backup推送之前：
+[root@backup ~]# ll /backup/
+total 8
+drwxr-xr-x 2 rsync rsync 4096 Dec  9 02:59 192.168.150.131_2016-12-09
+drwxr-xr-x 2 rsync rsync 4096 Dec 10 01:58 192.168.150.134_2016-12-10
+
+root@backup推送之后：
+[root@backup backup]# ls
+192.168.150.131_2016-12-09  192.168.150.134_2016-12-10  data
+
+============================================================================
+                     安装 inotify 工具
+
+[root@nfs-server ~]# cd /home/jiansong/tools/
+
+[root@nfs-server tools]# ls
+nginx-1.6.3  nginx-1.6.3.tar.gz
+
+安装 inotify 工具
+[root@nfs-server tools]# wget  http://jaist.dl.sourceforge.net/project/inotify-tools/inotify-tools/3.13/inotify-tools-3.13.tar.gz
+--2016-12-10 10:12:30--  http://jaist.dl.sourceforge.net/project/inotify-tools/inotify-tools/3.13/inotify-tools-3.13.tar.gz
+Resolving jaist.dl.sourceforge.net... 150.65.7.130, 2001:df0:2ed:feed::feed
+Connecting to jaist.dl.sourceforge.net|150.65.7.130|:80... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: 389473 (380K) [application/x-gzip]
+Saving to: “inotify-tools-3.13.tar.gz”
+
+100%[===============================================================================>] 389,473      130K/s   in 2.9s    
+
+2016-12-10 10:12:35 (130 KB/s) - “inotify-tools-3.13.tar.gz” saved [389473/389473]
+
+[root@nfs-server tools]# ls
+inotify-tools-3.13.tar.gz  nginx-1.6.3  nginx-1.6.3.tar.gz
+
+
+查看当前系统是否支持 inotify 
+[root@nfs-server tools]# uname -r
+2.6.32-279.el6.x86_64
+[root@nfs-server tools]# ls -l /proc/sys/fs/inotify/
+total 0
+-rw-r--r-- 1 root root 0 Dec 10 10:18 max_queued_events
+-rw-r--r-- 1 root root 0 Dec 10 10:18 max_user_instances
+-rw-r--r-- 1 root root 0 Dec 10 10:18 max_user_watches
+
+解压。切到inotify-tools-3.13目录下
+[root@nfs-server tools]# tar zxf inotify-tools-3.13.tar.gz 
+[root@nfs-server tools]# ls
+inotify-tools-3.13  inotify-tools-3.13.tar.gz  nginx-1.6.3  nginx-1.6.3.tar.gz
+[root@nfs-server tools]# cd inotify-tools-3.13
+
+把inotify-tools-3.13 安装到/usr/local/inotify-tools-3.13 路径下
+[root@nfs-server inotify-tools-3.13]# ./configure --prefix=/usr/local/inotify-tools-3.13
+...
+config.status: creating Makefile
+config.status: creating src/Makefile
+config.status: creating man/Makefile
+config.status: creating libinotifytools/Makefile
+config.status: creating libinotifytools/src/Makefile
+config.status: creating libinotifytools/src/inotifytools/Makefile
+config.status: creating config.h
+config.status: creating libinotifytools/src/inotifytools/inotify.h
+config.status: executing depfiles commands
+
+如果返回0，就表示正常执行
+[root@nfs-server inotify-tools-3.13]# echo $?
+0
+
+之后
+[root@nfs-server inotify-tools-3.13]# make && make install
+...
+
+如果返回0，就表示正常执行
+[root@nfs-server inotify-tools-3.13]# echo $?
+0
+
+做软链接(为了以后使用更短的路径来访问内容)
+[root@nfs-server inotify-tools-3.13]# cd ../
+[root@nfs-server tools]# ln -s /usr/local/inotify-tools-3.13/ /usr/local/inotify-tools
+
+[root@nfs-server tools]# ls -l /usr/local/inotify-tools/
+total 16
+drwxr-xr-x 2 root root 4096 Dec 10 10:29 bin       #inotify 执行命令
+drwxr-xr-x 3 root root 4096 Dec 10 10:29 include   #inotify 程序所需要的头文件
+drwxr-xr-x 2 root root 4096 Dec 10 10:29 lib       #动态链接的库文件
+drwxr-xr-x 4 root root 4096 Dec 10 10:29 share     #帮助文档
+
+===================================
+[root@nfs-server tools]# cd /usr/local/inotify-tools
+
+[root@nfs-server inotify-tools]# ls
+bin  include  lib  share
+
+[root@nfs-server inotify-tools]# ll bin/
+total 80
+-rwxr-xr-x 1 root root 38662 Dec 10 10:29 inotifywait
+-rwxr-xr-x 1 root root 40425 Dec 10 10:29 inotifywatch
+
+inotifywait常用参数：
+[root@nfs-server inotify-tools]# ./bin/inotifywait --help
+   -r|--recursive  Watch directories recursively.    #递归查询目录
+   -q|--quiet      Print less (only print events).   #仅仅打印监控事件
+   -m|--monitor    Keep listening for events forever.  Without
+                        this option, inotifywait will exit after one
+                        event is received.           #始终保持监控状态
+   
+	
+人工测试监控事件：
+
+开启两个窗口：
+1.测试 create
+
+一个窗口监控 /data
+[root@nfs-server inotify-tools]# /usr/local/inotify-tools/bin/inotifywait -mrq --timefmt '%d/%m/%y %H:%M' --format '%T %w%f' -e create /data
+
+另一个窗口创建 inotify01.txt
+[root@nfs-server ~]# cd /data/
+[root@nfs-server data]# ll
+total 12
+-rw-r--r-- 1 nfsnobody nfsnobody 19 Dec  9 10:26 nfssercer.txt
+-rw-r--r-- 1 nfsnobody nfsnobody 16 Dec  9 10:25 weblamp1.txt
+-rw-r--r-- 1 nfsnobody nfsnobody 19 Dec  9 10:25 weblnmp2.txt
+[root@nfs-server data]# touch inotify01.txt
+
+再查看监控的窗口 (发现 10/12/16 11:14 /data/inotify01.txt)
+[root@nfs-server inotify-tools]# /usr/local/inotify-tools/bin/inotifywait -mrq --timefmt '%d/%m/%y %H:%M' --format '%T %w%f' -e create /data
+10/12/16 11:14 /data/inotify01.txt
+
+
+监控删除事件
+
+一个窗口删除inotify03.txt 
+[root@nfs-server data]# rm -f inotify03.txt 
+
+查看监控的窗口
+[root@nfs-server inotify-tools]# /usr/local/inotify-tools/bin/inotifywait -mrq --timefmt '%d/%m/%y %H:%M' --format '%T %w%f' -e delete /data/
+10/12/16 11:20 /data/inotify03.txt
+
+
+同时监控多个事件
+[root@nfs-server data]# touch inotify03.txt
+[root@nfs-server data]# rm -f inotify02.txt 
+[root@nfs-server data]# touch intoify02.txt
+
+查看监控的窗口
+[root@nfs-server inotify-tools]# /usr/local/inotify-tools/bin/inotifywait -mrq --timefmt '%d/%m/%y %H:%M' --format '%T %w%f' -e create,delete /data/
+10/12/16 11:25 /data/inotify03.txt
+10/12/16 11:26 /data/inotify02.txt
+10/12/16 11:26 /data/intoify02.txt
+
+同时监控多个事件
+[root@nfs-server data]# echo hello >> inotify01.txt 
+[root@nfs-server data]# rm -f intoify02.txt 
+[root@nfs-server data]# touch inotify02.txt
+
+查看监控的窗口
+[root@nfs-server inotify-tools]# /usr/local/inotify-tools/bin/inotifywait -mrq --timefmt '%d/%m/%y %H:%M' --format '%T %w%f' -e create,delete,close_write /data/
+10/12/16 11:29 /data/inotify01.txt
+10/12/16 11:30 /data/intoify02.txt
+10/12/16 11:30 /data/inotify02.txt
+10/12/16 11:30 /data/inotify02.txt
+10/12/16 11:30 /data/inotify01.txt
+
+=======================================
+
+写脚本：
+[root@nfs-server inotify-tools]# mkdir -p /server/scripts
+
+[root@nfs-server inotify-tools]# cd /server/scripts/
+
+[root@nfs-server scripts]# pwd
+/server/scripts
+
+[[root@nfs-server scripts]# vim inotify.sh 
+#!/bin/bash
+
+inotify=/usr/local/inotify-tools/bin/inotifywait
+$inotify -mrq --format '%w%f' -e create,close_write,delete /data \
+|while read file
+do
+        cd / &&
+        rsync -az ./data --delete rsync_backup@192.168.150.130::backup/ \
+        --password-file=/etc/rsync.password
+done
+
+调试 inotify.sh 
+[root@nfs-server scripts]# sh -x inotify.sh 
++ inotify=/usr/local/inotify-tools/bin/inotifywait
++ /usr/local/inotify-tools/bin/inotifywait -mrq --format %w%f -e create,close_write,delete /data
++ read file
+
+另开一个窗口
+[root@nfs-server data]# touch jiansong.txt
+
+再查看 
+[root@nfs-server scripts]# sh -x inotify.sh 
++ inotify=/usr/local/inotify-tools/bin/inotifywait
++ /usr/local/inotify-tools/bin/inotifywait -mrq --format %w%f -e create,close_write,delete /data
++ read file
++ cd /
++ rsync -az ./data --delete rsync_backup@192.168.150.130::backup/ --password-file=/etc/rsync.password
++ read file
++ cd /
++ rsync -az ./data --delete rsync_backup@192.168.150.130::backup/ --password-file=/etc/rsync.password
++ read file
+
+
+查看备份服务器
+[root@backup backup]# ls
+data  inotify01.txt  inotify02.txt  inotify03.txt  jiansong.txt  nfssercer.txt  weblamp1.txt  weblnmp2.txt
+
+[root@backup backup]# ls -l data/
+total 16
+-rw-r--r-- 1 rsync rsync  6 Dec 10 11:29 inotify01.txt
+-rw-r--r-- 1 rsync rsync  0 Dec 10 11:30 inotify02.txt
+-rw-r--r-- 1 rsync rsync  0 Dec 10 11:25 inotify03.txt
+-rw-r--r-- 1 rsync rsync  0 Dec 10 12:08 jiansong02.txt
+-rw-r--r-- 1 rsync rsync  0 Dec 10 11:59 jiansong.txt
+-rw-r--r-- 1 rsync rsync 19 Dec  9 10:26 nfssercer.txt
+-rw-r--r-- 1 rsync rsync 16 Dec  9 10:25 weblamp1.txt
+-rw-r--r-- 1 rsync rsync 19 Dec  9 10:25 weblnmp2.txt
+	
+删除jiansong.txt 
+[root@nfs-server data]# rm -f jiansong.txt 
+
+查看备份服务器(发现jiansong.txt已被删除)
+[root@backup backup]# ls -l data/
+total 16
+-rw-r--r-- 1 rsync rsync  6 Dec 10 11:29 inotify01.txt
+-rw-r--r-- 1 rsync rsync  0 Dec 10 11:30 inotify02.txt
+-rw-r--r-- 1 rsync rsync  0 Dec 10 11:25 inotify03.txt
+-rw-r--r-- 1 rsync rsync  0 Dec 10 12:08 jiansong02.txt
+-rw-r--r-- 1 rsync rsync 19 Dec  9 10:26 nfssercer.txt
+-rw-r--r-- 1 rsync rsync 16 Dec  9 10:25 weblamp1.txt
+-rw-r--r-- 1 rsync rsync 19 Dec  9 10:25 weblnmp2.txt
+
+在创建yujiasong.txt
+
+[root@nfs-server data]# touch yujiasong.txt
+
+查看备份服务器(发现yujiasong.txt已备份)
+[root@backup backup]# ls -l data/
+total 16
+-rw-r--r-- 1 rsync rsync  6 Dec 10 11:29 inotify01.txt
+-rw-r--r-- 1 rsync rsync  0 Dec 10 11:30 inotify02.txt
+-rw-r--r-- 1 rsync rsync  0 Dec 10 11:25 inotify03.txt
+-rw-r--r-- 1 rsync rsync  0 Dec 10 12:08 jiansong02.txt
+-rw-r--r-- 1 rsync rsync 19 Dec  9 10:26 nfssercer.txt
+-rw-r--r-- 1 rsync rsync 16 Dec  9 10:25 weblamp1.txt
+-rw-r--r-- 1 rsync rsync 19 Dec  9 10:25 weblnmp2.txt
+-rw-r--r-- 1 rsync rsync  0 Dec 10 12:13 yujiasong.txt
+
+向yujiasong.txt 写入数据
+[root@nfs-server data]# echo hello >> yujiasong.txt 
+
+查看备份服务器
+[root@backup backup]# cat data/yujiasong.txt 
+hello
+
+==================
+脚本测试成功后全路径放到后台
+
+[root@nfs-server scripts]# /bin/bash /server/scripts/inotify.sh &
+[1] 12880
+
+并且放到 /etc/rc.local 里
+[root@nfs-server scripts]# vi /etc/rc.local 
+#!/bin/sh
+#
+# This script will be executed *after* all the other init scripts.
+# You can put your own initialization stuff in here if you don't
+# want to do the full Sys V style init stuff.
+
+touch /var/lock/subsys/local
+
+mount -t ext4 -o loop,noatime,noexec /dev/sdb1/ /mnt
+/etc/init.d/rpcbind start
+/etc/init.d/nfs start
+
+/bin/bash /server/scripts/inotify.sh &
+
+
+=========================
+[root@nfs-server scripts]# cat /proc/sys/fs/inotify/max_user_watches 
+8192
+
+[root@nfs-server inotify]# cat max_queued_events 
+16384
+
+[root@nfs-server inotify]# cat max_user_instances 
+128
+
+如果并发量比较大的时候可以考虑调大一些：
+
+echo "5000000" > /proc/sys/fs/inotify/max_user_watches
+echo "5000000" > /proc/sys/fs/inotify/max_queued_events
+
+========================
+
+1.批量分发文件
+2.批量执行命令
+
+SSH server
+1.SSH服务(Secure Shell Protocol)
+2.SFTP服务(vsftp,proftp)
+
+SSH client
+特别提醒： SSH客户端(ssh命令)还包含一个很有用的远程安全拷贝命令 scp, 也是通过ssh协议工作的。
+
+服务端软件：
+[root@nfs-server inotify]# rpm -qa openssh openssl
+openssl-1.0.1e-48.el6_8.3.x86_64 #加密
+openssh-5.3p1-81.el6.x86_64      #远程连接
+
+客户端(常见的有SSH(Linux) , SecureCRT,Putty,xshell)
+
+[root@nfs-server inotify]# less /etc/ssh/sshd_config
+
+===================
+
+SSH服务认证类型：
+
+1.基于口令的安全认证
+
+[root@nfs-server data]# ssh -p22 root@192.168.150.130
+root@192.168.150.130's password: 
+Last login: Sat Dec 10 09:19:00 2016 from 192.168.150.1
+[root@backup ~]# 
+
+[root@backup ~]# logout
+Connection to 192.168.150.130 closed.
+[root@nfs-server data]# 
+
+
+2.基于秘钥的安全认证
+
+
+===================
+
+[root@nfs-server data]# netstat -lntup|grep 22
+tcp        0      0 0.0.0.0:22                  0.0.0.0:*                   LISTEN      1149/sshd           
+tcp        0      0 :::22                       :::*                        LISTEN      1149/sshd  
+
+[root@nfs-server data]# /etc/init.d/sshd restart
+
+[root@nfs-server data]# chkconfig --list sshd
+sshd            0:off   1:off   2:off   3:on    4:off   5:on    6:off
+
+给你一个端口，如何命令行查出对应的服务？
+lsof -i tcp:52113
+netstat -lntup|grep 52113 
+
+给你一个进程名，怎么查看对应的端口号？
+netstat -lntup|grep sshd 
+
+ssh默认登录配置：
+[root@nfs-server data]# vi /etc/ssh/sshd_config         
+
+Port 52113                            #ssh连接默认端口22，为提高安全级别，建议改掉
+PermitRootLogin no					  #root超级用户，建议禁止它远程登录能力
+PermitEmptyPasswords no				  #禁止空密码登录
+UseDNS no                             #不使用DNS
+GSSAPIAuthentication no               #http://oldboy.blog.51cto.com/2561410/1300964
+ListenAddress 192.168.150.130
+
+=================================
+
+Linux客户端通过ssh连接
+
+[root@nfs-server data]# ssh -p22 root@192.168.150.130
+
+The authenticity of host '192.168.150.130 (192.168.150.130)' can't be established.
+RSA key fingerprint is c5:e6:94:9c:de:1e:f6:a9:3e:fd:2b:19:4a:7c:29:d0.
+Are you sure you want to continue connecting (yes/no)? yes
+Warning: Permanently added '192.168.150.130' (RSA) to the list of known hosts.
+root@192.168.150.130's password: 
+Last login: Sat Dec 10 17:30:09 2016 from 192.168.150.133
+
+[root@backup ~]# 
+
+连过去执行命令，但还是当前的nfs-server
+[root@nfs-server data]# ssh -p22 root@192.168.150.130 /sbin/ifconfig eth0
+root@192.168.150.130's password: 
+eth0      Link encap:Ethernet  HWaddr 00:0C:29:A5:22:BB  
+          inet addr:192.168.150.130  Bcast:192.168.150.255  Mask:255.255.255.0
+          inet6 addr: fe80::20c:29ff:fea5:22bb/64 Scope:Link
+          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+          RX packets:53206 errors:1 dropped:0 overruns:0 frame:0
+          TX packets:14728 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:1000 
+          RX bytes:8580196 (8.1 MiB)  TX bytes:1350019 (1.2 MiB)
+          Interrupt:19 Base address:0x2000 
+
+[root@nfs-server data]# 
+
+man ssh 看说明
+
+如果清空~/.ssh/known_hosts，连接时还是初始的连接状态，需要输入 yes 
+[root@nfs-server data]# cat ~/.ssh/known_hosts 
+192.168.150.130 ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEApvrz30w8zrzwjaQTLazSBJ/vYOntIeC39AWdqTiCVqRTaJCNJGK92Ji7d/4dqUQ0hQ6lPhujS0hDVni8vQOMd7afJnx1tpJvrDcNEGAqfIVu8h5XT0Y1GRkQiYf545f5aM7uLWEW9HAvoSQy8PwASsNnzqTR0wNfqD2lCGRO/B3I/uuaQ9elP4U7c3/6/L+IXQK2Zi3+SGky3okLmEVxA6HDwHIw1oTZe6scnRTgBywTCzJVFWK42j55gXTxyIeyfmZlXFEbhbgMydfMMGKYmfT1+fo+KhMafeyOI45VdmDLp2cpTlsveRCM0XJAoyXlspFmgBAvvoJTLkvkVCerpQ==
+
+[root@nfs-server data]# wc -L ~/.ssh/known_hosts 
+396 /root/.ssh/known_hosts
+
+[root@nfs-server data]# ssh -p22 root@192.168.150.130
+The authenticity of host '192.168.150.130 (192.168.150.130)' can't be established.
+RSA key fingerprint is c5:e6:94:9c:de:1e:f6:a9:3e:fd:2b:19:4a:7c:29:d0.
+Are you sure you want to continue connecting (yes/no)? yes
+Warning: Permanently added '192.168.150.130' (RSA) to the list of known hosts.
+root@192.168.150.130's password: 
+Last login: Sat Dec 10 17:31:53 2016 from 192.168.150.133
+[root@backup ~]# 
+
+==========================
+
+ssh客户端附带的远程拷贝 scp命令
+
+scp - secure copy (remote file copy program)
+	-P  #接端口
+	-r  #递归，表示拷贝目录
+	-p  #表示在拷贝前后保持文件或目录属性
+	-l  #限制速度
+
+把 /etc/ 拷贝到192.168.150.130 /tmp/的目录下
+[root@nfs-server data]# scp -P22 -r -p /etc/ root@192.168.150.130:/tmp/
+
+[root@backup backup]# ll -h /tmp/
+total 268K
+drwxr-xr-x. 91 root root 4.0K Dec 10 12:22 etc
+-rw-r--r--   1 root root 125K Dec  7 21:51 services_2016-12-07-21.tar.gz
+-rw-r--r--   1 root root 125K Dec  7 21:29 services.tar.gz
+drwxr-xr-x   2 root root 4.0K Dec  7 21:50 shellscript
+-rw-r--r--   1 root root  176 Dec  7 17:29 test1.txt
+-rw-r--r--   1 root root    0 Dec  3 11:55 yu.txt
+
+
+[root@nfs-server data]# scp -P22 -r -p /data/ root@192.168.150.130:/tmp/
+root@192.168.150.130's password: 
+inotify01.txt                                                                          100%    6     0.0KB/s   00:00    
+inotify02.txt                                                                          100%    0     0.0KB/s   00:00    
+weblamp1.txt                                                                           100%   16     0.0KB/s   00:00    
+weblnmp2.txt                                                                           100%   19     0.0KB/s   00:00    
+inotify03.txt                                                                          100%    0     0.0KB/s   00:00    
+nfssercer.txt                                                                          100%   19     0.0KB/s   00:00    
+jiansong02.txt                                                                         100%    0     0.0KB/s   00:00  
+
+
+[root@backup backup]# ll -h /tmp/
+total 272K
+drwxr-xr-x   2 root root 4.0K Dec 10 12:26 data
+drwxr-xr-x. 91 root root 4.0K Dec 10 12:22 etc
+
+用rsync拷贝
+[root@nfs-server data]# rsync -avz /data -e 'ssh -p 22' root@192.168.150.130:/tmp/ 
+root@192.168.150.130's password: 
+sending incremental file list
+data/
+
+sent 243 bytes  received 25 bytes  25.52 bytes/sec
+total size is 60  speedup is 0.22
+
+从root@192.168.150.130的 /tmp/ 拉到 本地下的 /tmp/
+[root@nfs-server data]# scp -P22 -r -p root@192.168.150.130:/tmp/ /tmp/
+
+============================================
+
+linux sftp 客户端连接 sftp 服务器方法：
+  sftp - secure file transfer program
+  
+  upload :
+  put /etc/hosts
+  put /etc/hosts /tmp
+  
+  download:
+  get hosts
+  get /etc/hosts /tmp
+  
+[root@nfs-server data]# sftp -oPort=22 root@192.168.150.130
+Connecting to 192.168.150.130...
+root@192.168.150.130's password: 
+sftp> ls -l
+-rw-r--r--    1 root     root          320 Nov 28 11:07 --exclude
+-rw-------    1 root     root         1006 Nov 21 16:41 anaconda-ks.cfg
+drwxr-xr-x    7 root     root         4096 Nov 28 11:06 data
+-rw-r--r--    1 root     root        21042 Nov 21 16:41 install.log
+-rw-r--r--    1 root     root         5890 Nov 21 16:39 install.log.syslog
+-rw-r--r--    1 root     root          682 Nov 29 11:02 regular_express.txt
+-rw-r--r--    1 root     root          666 Nov 29 10:58 regular_express.txt.bak
+
+sftp> put /etc/hosts
+Uploading /etc/hosts to /root/hosts
+/etc/hosts                                                                             100%  187     0.2KB/s   00:00    
+sftp> ls -l
+-rw-r--r--    1 root     root          320 Nov 28 11:07 --exclude
+-rw-------    1 root     root         1006 Nov 21 16:41 anaconda-ks.cfg
+drwxr-xr-x    7 root     root         4096 Nov 28 11:06 data
+-rw-r--r--    1 root     root          187 Dec 10 18:22 hosts
+-rw-r--r--    1 root     root        21042 Nov 21 16:41 install.log
+-rw-r--r--    1 root     root         5890 Nov 21 16:39 install.log.syslog
+-rw-r--r--    1 root     root          682 Nov 29 11:02 regular_express.txt
+-rw-r--r--    1 root     root          666 Nov 29 10:58 regular_express.txt.bak
+
+=======================================
