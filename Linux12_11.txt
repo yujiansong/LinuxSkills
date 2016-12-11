@@ -1,0 +1,285 @@
+
++++++++++++++++++++++++++++++++++++++++++++
+
+优化 SSH
+[root@WebLamp01 ~]# vi /etc/ssh/sshd_config 
+
+PermitRootLogin no
+PermitEmptyPasswords no
+UseDNS no
+GSSAPIAuthentication no
+
+++++++++++++++++++++++++++++++++++++++++++
+
+[root@WebLamp01 ~]# echo 'yujiansong  ALL=(ALL)   NOPASSWD:/usr/bin/rsync' >> /etc/sudoers
+[root@WebLamp01 ~]# visudo -c
+/etc/sudoers: parsed OK
+[root@WebLamp01 ~]# grep yujiansong /etc/sudoers
+yujiansong  ALL=(ALL)   NOPASSWD:/usr/bin/rsync
+
+=========================================
+
+批量管理实例：
+1).创建用户名
+[root@nfs-server yujiansong]# useradd yujiansong02
+[root@nfs-server yujiansong]# echo 123456|passwd --stdin yujiansong02
+Changing password for user yujiansong02.
+passwd: all authentication tokens updated successfully.
+
+2).生成sshkey
+[yujiansong02@nfs-server ~]$ ssh-keygen -t dsa
+Generating public/private dsa key pair.
+Enter file in which to save the key (/home/yujiansong02/.ssh/id_dsa): 
+Created directory '/home/yujiansong02/.ssh'.
+Enter passphrase (empty for no passphrase): 
+Enter same passphrase again: 
+Your identification has been saved in /home/yujiansong02/.ssh/id_dsa.
+Your public key has been saved in /home/yujiansong02/.ssh/id_dsa.pub.
+The key fingerprint is:
+78:6d:cc:5b:95:bc:34:69:57:60:d0:e7:04:08:a7:5f yujiansong02@nfs-server
+The key's randomart image is:
++--[ DSA 1024]----+
+|          ..o++o.|
+|           o.o.o+|
+|          .   E+.|
+|       . + . = +.|
+|      . S = o .  |
+|       . . o     |
+|          .      |
+|                 |
+|                 |
++-----------------+
+
+3).查询生成的 sshkey
+[yujiansong02@nfs-server ~]$ ll .ssh/
+total 8
+-rw------- 1 yujiansong02 yujiansong02 668 Dec 11 11:17 id_dsa
+-rw-r--r-- 1 yujiansong02 yujiansong02 613 Dec 11 11:17 id_dsa.pub
+
+4).分发公钥 (先分发到yujiansong02@192.168.150.130)
+[yujiansong02@nfs-server ~]$ ssh-copy-id -i .ssh/id_dsa.pub yujiansong02@192.168.150.130
+The authenticity of host '192.168.150.130 (192.168.150.130)' can't be established.
+RSA key fingerprint is c5:e6:94:9c:de:1e:f6:a9:3e:fd:2b:19:4a:7c:29:d0.
+Are you sure you want to continue connecting (yes/no)? yes
+Warning: Permanently added '192.168.150.130' (RSA) to the list of known hosts.
+yujiansong02@192.168.150.130's password: 
+Now try logging into the machine, with "ssh 'yujiansong02@192.168.150.130'", and check in:
+
+  .ssh/authorized_keys
+
+to make sure we haven't added extra keys that you weren't expecting.
+
+
+[root@WebLamp01 ~]# grep authorized_keys /etc/ssh/sshd_config 
+#AuthorizedKeysFile     .ssh/authorized_keys
+
+5).再分发到yujiansong02@192.168.150.131
+[yujiansong02@nfs-server ~]$ ssh-copy-id -i .ssh/id_dsa.pub yujiansong02@192.168.150.131
+The authenticity of host '192.168.150.131 (192.168.150.131)' can't be established.
+RSA key fingerprint is c5:e6:94:9c:de:1e:f6:a9:3e:fd:2b:19:4a:7c:29:d0.
+Are you sure you want to continue connecting (yes/no)? yes
+Warning: Permanently added '192.168.150.131' (RSA) to the list of known hosts.
+yujiansong02@192.168.150.131's password: 
+Now try logging into the machine, with "ssh 'yujiansong02@192.168.150.131'", and check in:
+
+  .ssh/authorized_keys
+
+to make sure we haven't added extra keys that you weren't expecting.
+
+6).查看ip  yujiansong02@192.168.150.131(如果没有分发给公钥，则需要输入密码才能查寻ip地址)
+[yujiansong02@nfs-server ~]$ ssh yujiansong02@192.168.150.131 /sbin/ifconfig eth0
+eth0      Link encap:Ethernet  HWaddr 00:0C:29:91:1A:56  
+          inet addr:192.168.150.131  Bcast:192.168.150.255  Mask:255.255.255.0
+          inet6 addr: fe80::20c:29ff:fe91:1a56/64 Scope:Link
+          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+          RX packets:54120 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:15382 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:1000 
+          RX bytes:8753982 (8.3 MiB)  TX bytes:2131984 (2.0 MiB)
+          Interrupt:19 Base address:0x2000 
+		  
+例： 没有分发给公钥，则需要输入密码才能查寻ip地址
+[yujiansong02@nfs-server ~]$ ssh yujiansong02@192.168.150.130 /sbin/ifconfig eth0 
+yujiansong02@192.168.150.130's password: 
+eth0      Link encap:Ethernet  HWaddr 00:0C:29:A5:22:BB  
+          inet addr:192.168.150.130  Bcast:192.168.150.255  Mask:255.255.255.0
+          inet6 addr: fe80::20c:29ff:fea5:22bb/64 Scope:Link
+          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+          RX packets:35359 errors:1 dropped:0 overruns:0 frame:0
+          TX packets:11768 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:1000 
+          RX bytes:7371019 (7.0 MiB)  TX bytes:1103222 (1.0 MiB)
+          Interrupt:19 Base address:0x2000 
+		  
+===========================
+
+[yujiansong02@nfs-server ~]$ scp -p .ssh/id_dsa yujiansong02@192.168.150.130:~/.ssh
+id_dsa                                                                                 100%  668     0.7KB/s   00:00    
+[yujiansong02@nfs-server ~]$ scp -p .ssh/id_dsa yujiansong02@192.168.150.131:~/.ssh
+id_dsa                                                                                 100%  668     0.7KB/s   00:00  
+发给自己
+[yujiansong02@nfs-server ~]$ ssh-copy-id -i .ssh/id_dsa.pub yujiansong02@192.168.150.133
+yujiansong02@192.168.150.133's password: 
+Now try logging into the machine, with "ssh 'yujiansong02@192.168.150.133'", and check in:
+
+  .ssh/authorized_keys
+
+to make sure we haven't added extra keys that you weren't expecting.
+
+[yujiansong02@nfs-server ~]$ ll .ssh/
+total 16
+-rw------- 1 yujiansong02 yujiansong02  613 Dec 11 11:52 authorized_keys
+-rw------- 1 yujiansong02 yujiansong02  668 Dec 11 11:17 id_dsa
+-rw-r--r-- 1 yujiansong02 yujiansong02  613 Dec 11 11:17 id_dsa.pub
+-rw-r--r-- 1 yujiansong02 yujiansong02 1191 Dec 11 11:48 known_hosts
+
+[root@backup ~]# su - yujiansong02
+第一次需要密码，
+[yujiansong02@backup ~]$ ssh yujiansong02@192.168.150.133 /sbin/ifconfig eth0
+The authenticity of host '192.168.150.133 (192.168.150.133)' can't be established.
+RSA key fingerprint is c5:e6:94:9c:de:1e:f6:a9:3e:fd:2b:19:4a:7c:29:d0.
+Are you sure you want to continue connecting (yes/no)? yes
+Warning: Permanently added '192.168.150.133' (RSA) to the list of known hosts.
+eth0      Link encap:Ethernet  HWaddr 00:0C:29:76:C7:C8  
+          inet addr:192.168.150.133  Bcast:192.168.150.255  Mask:255.255.255.0
+          inet6 addr: fe80::20c:29ff:fe76:c7c8/64 Scope:Link
+          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+          RX packets:126618 errors:3 dropped:0 overruns:0 frame:0
+          TX packets:71616 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:1000 
+          RX bytes:41213299 (39.3 MiB)  TX bytes:33842098 (32.2 MiB)
+          Interrupt:19 Base address:0x2000 
+
+		  100%  668     0.7KB/s   00:00 
+
+第二次不需要密码
+[yujiansong02@backup ~]$ ssh yujiansong02@192.168.150.133 /sbin/ifconfig eth0
+eth0      Link encap:Ethernet  HWaddr 00:0C:29:76:C7:C8  
+          inet addr:192.168.150.133  Bcast:192.168.150.255  Mask:255.255.255.0
+          inet6 addr: fe80::20c:29ff:fe76:c7c8/64 Scope:Link
+          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+          RX packets:126721 errors:3 dropped:0 overruns:0 frame:0
+          TX packets:71665 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:1000 
+          RX bytes:41224417 (39.3 MiB)  TX bytes:33850986 (32.2 MiB)
+          Interrupt:19 Base address:0x2000 
+
+[yujiansong02@WebLamp01 ~]$ ssh yujiansong02@192.168.150.133 /sbin/ifconfig eth0
+The authenticity of host '192.168.150.133 (192.168.150.133)' can't be established.
+RSA key fingerprint is c5:e6:94:9c:de:1e:f6:a9:3e:fd:2b:19:4a:7c:29:d0.
+Are you sure you want to continue connecting (yes/no)? yes
+Warning: Permanently added '192.168.150.133' (RSA) to the list of known hosts.
+eth0      Link encap:Ethernet  HWaddr 00:0C:29:76:C7:C8  
+          inet addr:192.168.150.133  Bcast:192.168.150.255  Mask:255.255.255.0
+          inet6 addr: fe80::20c:29ff:fe76:c7c8/64 Scope:Link
+          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+          RX packets:126782 errors:3 dropped:0 overruns:0 frame:0
+          TX packets:71685 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:1000 
+          RX bytes:41230408 (39.3 MiB)  TX bytes:33855095 (32.2 MiB)
+          Interrupt:19 Base address:0x2000 
+		  
+再用另一台连接
+[yujiansong02@WebLamp01 ~]$ ssh yujiansong02@192.168.150.133 /sbin/ifconfig eth0
+eth0      Link encap:Ethernet  HWaddr 00:0C:29:76:C7:C8  
+          inet addr:192.168.150.133  Bcast:192.168.150.255  Mask:255.255.255.0
+          inet6 addr: fe80::20c:29ff:fe76:c7c8/64 Scope:Link
+          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+          RX packets:126802 errors:3 dropped:0 overruns:0 frame:0
+          TX packets:71703 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:1000 
+          RX bytes:41233799 (39.3 MiB)  TX bytes:33859024 (32.2 MiB)
+          Interrupt:19 Base address:0x2000 		
+
+	======================================	  
+		  写脚本
+[yujiansong02@nfs-server ~]$ vim send.sh
+#!/bin/bash
+
+. /etc/init.d/functions
+if [ $# -ne 1 ]
+then
+        echo "USAGE:$0 FILENAME"
+        exit 1
+fi
+for n in 130 131
+do
+        scp -rp $1 yujiansong02@192.168.150.$n:~ &> /dev/null
+        if [ $? -eq 0 ]
+        then
+                action "$n is ok" /bin/true
+        else
+                action "$n is fail" /bin/false
+        fi
+done	
+
+[yujiansong02@nfs-server ~]$ ll
+total 8
+-rw-rw-r-- 1 yujiansong02 yujiansong02 271 Dec 11 12:56 send.sh
+-rw-r--r-- 1 yujiansong02 yujiansong02 613 Dec 11 11:17 yujiansong02@192.168.150.133
+[yujiansong02@nfs-server ~]$ cp /etc/hosts .
+[yujiansong02@nfs-server ~]$ ll
+total 12
+-rw-r--r-- 1 yujiansong02 yujiansong02 208 Dec 11 12:57 hosts
+-rw-rw-r-- 1 yujiansong02 yujiansong02 271 Dec 11 12:56 send.sh
+-rw-r--r-- 1 yujiansong02 yujiansong02 613 Dec 11 11:17 yujiansong02@192.168.150.133
+
+[yujiansong02@nfs-server ~]$ vi hosts 
+127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4
+::1         localhost localhost.localdomain localhost6 localhost6.localdomain6
+192.168.150.133 nfs-server
+192.168.150.130 backup
+192.168.150.131 WebLamp01
+
+[yujiansong02@nfs-server ~]$ ls
+hosts  send.sh  yujiansong02@192.168.150.133
+[yujiansong02@nfs-server ~]$ /bin/bash /home/yujiansong02/send.sh 
+USAGE:/home/yujiansong02/send.sh FILENAME
+[yujiansong02@nfs-server ~]$ /bin/bash send.sh hosts 
+hosts 192.168.150.130 is ok                                [  OK  ]
+hosts 192.168.150.131 is ok                                [  OK  ]
+
+再分发机192.168.150.130上查看：
+[root@backup ~]# cat /home/yujiansong02/hosts 
+127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4
+::1         localhost localhost.localdomain localhost6 localhost6.localdomain6
+192.168.150.133 nfs-server
+192.168.150.130 backup
+192.168.150.131 WebLamp01
+
+
+再分发机192.168.150.130上查看：
+[root@WebLamp01 ~]# cat /home/yujiansong02/hosts 
+127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4
+::1         localhost localhost.localdomain localhost6 localhost6.localdomain6
+192.168.150.133 nfs-server
+192.168.150.130 backup
+192.168.150.131 WebLamp01
+
+========================================
+
+[yujiansong02@nfs-server ~]$ dig +trace www.sina.com   #DNS解析
+
+
+查看 http 版本
+
+[yujiansong02@nfs-server ~]$ curl -I www.sina.com
+HTTP/1.1 301 Moved Permanently     #HTTP/1.1 
+Server: nginx
+Date: Sun, 11 Dec 2016 08:35:10 GMT
+Content-Type: text/html
+Location: http://www.sina.com.cn/
+Expires: Sun, 11 Dec 2016 08:37:10 GMT
+Cache-Control: max-age=120
+Age: 18
+Content-Length: 178
+X-Cache: HIT from ctc.gz.1cf2.44.spool.sina.com.cn
+
+=============================================
+
+
+
+
+
+
+	  
