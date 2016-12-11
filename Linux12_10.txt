@@ -534,3 +534,197 @@ drwxr-xr-x    7 root     root         4096 Nov 28 11:06 data
 -rw-r--r--    1 root     root          666 Nov 29 10:58 regular_express.txt.bak
 
 =======================================
+
+[root@backup ~]# uname -n
+backup
+[root@backup ~]# vi /etc/hosts
+127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4
+::1         localhost localhost.localdomain localhost6 localhost6.localdomain6
+192.168.150.130 backup
+
+==========================================
+1.批量分发数据  批量部署，执行命令， 批量配置管理
+
+1）查看当前环境
+[root@nfs-server ~]# cat /etc/redhat-release
+CentOS release 6.3 (Final)
+
+[root@nfs-server ~]# uname -r
+2.6.32-279.el6.x86_64
+
+[root@nfs-server ~]# uname -m
+x86_64
+
+2）创建 用户和密码
+[root@nfs-server ~]# useradd yujiansong
+
+[root@nfs-server ~]# echo 123456|passwd --stdin yujiansong
+Changing password for user yujiansong.
+passwd: all authentication tokens updated successfully.
+
+3）创建 密钥对
+[root@nfs-server ~]# su - yujiansong
+
+[yujiansong@nfs-server ~]$ ssh-keygen -t dsa
+Generating public/private dsa key pair.
+Enter file in which to save the key (/home/yujiansong/.ssh/id_dsa): 
+Created directory '/home/yujiansong/.ssh'.
+Enter passphrase (empty for no passphrase): 
+Enter same passphrase again: 
+Your identification has been saved in /home/yujiansong/.ssh/id_dsa.
+Your public key has been saved in /home/yujiansong/.ssh/id_dsa.pub.
+The key fingerprint is:
+f8:de:7a:be:b9:36:37:db:56:49:9e:b6:d6:bc:c4:99 yujiansong@nfs-server
+The key's randomart image is:
++--[ DSA 1024]----+
+|                 |
+|                 |
+|                 |
+|       .       . |
+|      . S     o o|
+|       .      .=+|
+|        .     .Eo|
+|       . .+.o.ooo|
+|        o=*=.+o..|
++-----------------+
+
+生成的密钥对
+[yujiansong@nfs-server ~]$ ls -l .ssh/
+total 8
+-rw------- 1 yujiansong yujiansong 668 Dec 11 00:13 id_dsa
+-rw-r--r-- 1 yujiansong yujiansong 611 Dec 11 00:13 id_dsa.pub
+
+4）分发公钥
+[yujiansong@nfs-server ~]$ ssh-copy-id  -i .ssh/id_dsa.pub yujiansong@192.168.150.130
+The authenticity of host '192.168.150.130 (192.168.150.130)' can't be established.
+RSA key fingerprint is c5:e6:94:9c:de:1e:f6:a9:3e:fd:2b:19:4a:7c:29:d0.
+Are you sure you want to continue connecting (yes/no)? yes
+Warning: Permanently added '192.168.150.130' (RSA) to the list of known hosts.
+yujiansong@192.168.150.130's password: 
+Now try logging into the machine, with "ssh 'yujiansong@192.168.150.130'", and check in:
+
+  .ssh/authorized_keys
+
+to make sure we haven't added extra keys that you weren't expecting.
+
+如果端口不是22的话，例如是 52113 
+[yujiansong@nfs-server ~]$ ssh-copy-id  -i .ssh/id_dsa.pub “-p52113 yujiansong@192.168.150.130”
+
+去分发的客户端查看公钥
+[root@backup ~]# ll /home/yujiansong/.ssh/
+total 4
+-rw------- 1 yujiansong yujiansong 611 Dec 11 00:21 authorized_keys
+
+再把公钥给 客户端yujiansong@192.168.150.131 
+[yujiansong@nfs-server ~]$ ssh-copy-id -i .ssh/id_dsa.pub yujiansong@192.168.150.131
+The authenticity of host '192.168.150.131 (192.168.150.131)' can't be established.
+RSA key fingerprint is c5:e6:94:9c:de:1e:f6:a9:3e:fd:2b:19:4a:7c:29:d0.
+Are you sure you want to continue connecting (yes/no)? yes
+yujiansong@192.168.150.131's password: 
+Now try logging into the machine, with "ssh 'yujiansong@192.168.150.131'", and check in:
+
+  .ssh/authorized_keys
+
+to make sure we haven't added extra keys that you weren't expecting.
+
+此时不再需要密码
+直接查看客户端网卡
+[yujiansong@nfs-server ~]$ ssh -p22 yujiansong@192.168.150.130 /sbin/ifconfig eth0
+eth0      Link encap:Ethernet  HWaddr 00:0C:29:A5:22:BB  
+          inet addr:192.168.150.130  Bcast:192.168.150.255  Mask:255.255.255.0
+          inet6 addr: fe80::20c:29ff:fea5:22bb/64 Scope:Link
+          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+          RX packets:96033 errors:4 dropped:0 overruns:0 frame:0
+          TX packets:53519 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:1000 
+          RX bytes:37937923 (36.1 MiB)  TX bytes:30764439 (29.3 MiB)
+          Interrupt:19 Base address:0x2000 
+
+[yujiansong@nfs-server ~]$ ssh -p22 yujiansong@192.168.150.131 /sbin/ifconfig eth0
+eth0      Link encap:Ethernet  HWaddr 00:0C:29:91:1A:56  
+          inet addr:192.168.150.131  Bcast:192.168.150.255  Mask:255.255.255.0
+          inet6 addr: fe80::20c:29ff:fe91:1a56/64 Scope:Link
+          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+          RX packets:47568 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:13348 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:1000 
+          RX bytes:8257280 (7.8 MiB)  TX bytes:1891044 (1.8 MiB)
+          Interrupt:19 Base address:0x2000 
+
+写入脚本
+[yujiansong@nfs-server ~]$ cat view.sh 
+#!/bin/bash
+
+ssh -p22 yujiansong@192.168.150.130 /sbin/ifconfig eth0
+echo =================================================
+ssh -p22 yujiansong@192.168.150.131 /sbin/ifconfig eth0
+
+
+执行脚本
+[yujiansong@nfs-server ~]$ /bin/bash view.sh 
+eth0      Link encap:Ethernet  HWaddr 00:0C:29:A5:22:BB  
+          inet addr:192.168.150.130  Bcast:192.168.150.255  Mask:255.255.255.0
+          inet6 addr: fe80::20c:29ff:fea5:22bb/64 Scope:Link
+          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+          RX packets:96302 errors:4 dropped:0 overruns:0 frame:0
+          TX packets:53582 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:1000 
+          RX bytes:37958296 (36.1 MiB)  TX bytes:30772280 (29.3 MiB)
+          Interrupt:19 Base address:0x2000 
+
+=================================================
+eth0      Link encap:Ethernet  HWaddr 00:0C:29:91:1A:56  
+          inet addr:192.168.150.131  Bcast:192.168.150.255  Mask:255.255.255.0
+          inet6 addr: fe80::20c:29ff:fe91:1a56/64 Scope:Link
+          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+          RX packets:47805 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:13408 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:1000 
+          RX bytes:8275152 (7.8 MiB)  TX bytes:1899103 (1.8 MiB)
+          Interrupt:19 Base address:0x2000 
+
+		  
+[yujiansong@nfs-server ~]$ cp /etc/hosts .
+[yujiansong@nfs-server ~]$ ll
+total 8
+-rw-r--r-- 1 yujiansong yujiansong 208 Dec 11 00:42 hosts
+-rw-rw-r-- 1 yujiansong yujiansong 183 Dec 11 00:38 view.sh
+[yujiansong@nfs-server ~]$ scp -P22 hosts yujiansong@192.168.150.133:~
+The authenticity of host '192.168.150.133 (192.168.150.133)' can't be established.
+RSA key fingerprint is c5:e6:94:9c:de:1e:f6:a9:3e:fd:2b:19:4a:7c:29:d0.
+Are you sure you want to continue connecting (yes/no)? yes
+Warning: Permanently added '192.168.150.133' (RSA) to the list of known hosts.
+yujiansong@192.168.150.133's password: 
+hosts                                                                                  100%  208     0.2KB/s   00:00  
+
+[yujiansong@nfs-server ~]$ cat /home/yujiansong/hosts 
+127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4
+::1         localhost localhost.localdomain localhost6 localhost6.localdomain6
+192.168.150.133 nfs-server
+192.168.150.133 backup
+
+可以写脚本
+[yujiansong@nfs-server ~]$ vi send.sh
+#!/bin/bash
+
+scp -P22 hosts yujiansong@192.168.150.130:~
+scp -P22 hosts yujiansong@192.168.150.131:~
+
+执行脚本
+[yujiansong@nfs-server ~]$ ls
+hosts  send.sh  view.sh
+
+[yujiansong@nfs-server ~]$ pwd
+/home/yujiansong
+
+[yujiansong@nfs-server ~]$ /bin/bash /home/yujiansong/send.sh 
+hosts                                                                                  100%  208     0.2KB/s   00:00    
+hosts                                                                                  100%  208     0.2KB/s   00:00 
+
+[root@backup ~]# cat /home/yujiansong/hosts 
+127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4
+::1         localhost localhost.localdomain localhost6 localhost6.localdomain6
+192.168.150.133 nfs-server
+192.168.150.133 backup
+
+
