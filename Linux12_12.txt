@@ -1080,6 +1080,44 @@ total 48
 00 00 * * * /bin/bash /server/scripts/cut_nginx_log.sh > /dev/null 2>&1
 
 ===============================================
+Nginx Rewrite 301 跳转
+
+[root@lnmp02 conf]# vim extra/blog.conf 
+   server {
+        listen       80;
+        server_name   yujiansong.org;
+        rewrite ^/(.*) http://blog.yujiansong.org/$1 permanent;
+    }
+   server {
+        listen       80;
+        server_name  blog.yujiansong.org ;
+        location / {
+            root   html/blog;
+            index  index.html index.htm;
+        }
+        access_log logs/access_blog.log main;
+    }
+	
+[root@lnmp02 conf]# ../sbin/nginx -t
+nginx: the configuration file /application/nginx-1.6.3/conf/nginx.conf syntax is ok
+nginx: configuration file /application/nginx-1.6.3/conf/nginx.conf test is successful
+
+[root@lnmp02 conf]# ../sbin/nginx -s reload
+
+
+[root@lnmp02 conf]# curl yujiansong.org/yujiasnong.html -I
+HTTP/1.1 301 Moved Permanently
+Server: nginx/1.6.3
+Date: Mon, 12 Dec 2016 15:11:06 GMT
+Content-Type: text/html
+Content-Length: 184
+Connection: keep-alive
+Location: http://blog.yujiansong.org/yujiasnong.html
+
+=====================================================
+
+
+
 
 
 
