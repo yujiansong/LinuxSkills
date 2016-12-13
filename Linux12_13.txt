@@ -1,0 +1,327 @@
+
++++++++++++++++++++++++++++++++++++++
+安装 Mysql(二进制包)
+
+1).先把mysql-5.5.53-linux2.6-x86_64.tar.gz 传到linux
+[root@lnmp02 tools]# rz -y
+rz waiting to receive.
+Starting zmodem transfer.  Press Ctrl+C to cancel.
+  100%  181566 KB 3947 KB/s 00:00:46       0 Errors
+
+2).查看
+[root@lnmp02 tools]# ls
+mysql-5.5.53-linux2.6-x86_64.tar.gz  nginx-1.6.3  nginx-1.6.3.tar.gz
+
+[root@lnmp02 tools]# ls -l mysql-5.5.53-linux2.6-x86_64.tar.gz 
+-rw-r--r-- 1 root root 185923648 Dec 13 11:14 mysql-5.5.53-linux2.6-x86_64.tar.gz
+
+3).创建 mysql用户
+[root@lnmp02 tools]# id mysql
+id: mysql: No such user
+[root@lnmp02 tools]# useradd -s /sbin/nologin -M mysql
+[root@lnmp02 tools]# id mysql
+uid=504(mysql) gid=504(mysql) groups=504(mysql)
+
+4).解压
+[root@lnmp02 tools]# tar xf mysql-5.5.53-linux2.6-x86_64.tar.gz 
+
+[root@lnmp02 tools]# ls
+mysql-5.5.53-linux2.6-x86_64  mysql-5.5.53-linux2.6-x86_64.tar.gz  nginx-1.6.3  nginx-1.6.3.tar.gz
+
+5).做软链接
+[root@lnmp02 tools]# mv mysql-5.5.53-linux2.6-x86_64 /application/mysql-5.5.53
+[root@lnmp02 tools]# ln -s /application/mysql-5.5.53/ /application/mysql
+
+[root@lnmp02 tools]# ls -l /application/
+total 8
+lrwxrwxrwx  1 root root   26 Dec 13 11:32 mysql -> /application/mysql-5.5.53/
+drwxr-xr-x 13 root root 4096 Dec 13 11:27 mysql-5.5.53
+lrwxrwxrwx  1 root root   25 Nov 15 03:05 nginx -> /application/nginx-1.6.3/
+drwxr-xr-x 11 root root 4096 Dec 12 11:17 nginx-1.6.3
+
+操作到此步，相当于编译安装 make install 之后
+
+6).初始化数据库
+[root@lnmp02 tools]# ll /application/mysql/scripts/mysql_install_db 
+-rwxr-xr-x 1 7161 31415 14764 Sep 29 03:26 /application/mysql/scripts/mysql_install_db
+
+[root@lnmp02 tools]# /application/mysql/scripts/mysql_install_db --basedir=/application/mysql --datadir=/application/mysql/data/ --user=mysql
+
+161213 11:41:51 [Note] /application/mysql/bin/mysqld (mysqld 5.5.53) starting as process 14526 ...
+OK
+Filling help tables...
+161213 11:41:53 [Note] Ignoring --secure-file-priv value as server is running with --bootstrap.
+161213 11:41:53 [Note] /application/mysql/bin/mysqld (mysqld 5.5.53) starting as process 14532 ...
+OK
+
+7).授权MySql管理数据库文件
+[root@lnmp02 tools]# chown -R mysql.mysql /application/mysql/
+
+8).生成配置文件
+[root@lnmp02 tools]# cp /application/mysql/support-files/my-small.cnf  /etc/my.cnf 
+
+mysql 配置文件
+[root@lnmp02 mysql]# pwd
+/application/mysql
+[root@lnmp02 mysql]# ll support-files/*.cnf
+-rw-r--r-- 1 mysql mysql  4691 Sep 29 03:26 support-files/my-huge.cnf
+-rw-r--r-- 1 mysql mysql 19759 Sep 29 03:26 support-files/my-innodb-heavy-4G.cnf
+-rw-r--r-- 1 mysql mysql  4665 Sep 29 03:26 support-files/my-large.cnf
+-rw-r--r-- 1 mysql mysql  4676 Sep 29 03:26 support-files/my-medium.cnf
+-rw-r--r-- 1 mysql mysql  2840 Sep 29 03:26 support-files/my-small.cnf
+
+[root@lnmp02 mysql]# cp support-files/my-small.cnf  /etc/my.cnf 
+cp: overwrite `/etc/my.cnf'? y
+
+9).配置启动mysql
+[root@lnmp02 mysql]# sed -i 's#/usr/local/mysql#/application/mysql#g' /application/mysql/bin/mysqld_safe 
+
+[root@lnmp02 mysql]# /application/mysql/bin/mysqld_safe &
+[1] 14727
+[root@lnmp02 mysql]# 161213 12:17:17 mysqld_safe Logging to '/application/mysql/data/lnmp02.err'.
+161213 12:17:17 mysqld_safe Starting mysqld daemon with databases from /application/mysql/data
+
+[root@lnmp02 mysql]# lsof -i :3306
+COMMAND   PID  USER   FD   TYPE DEVICE SIZE/OFF NODE NAME
+mysqld  14946 mysql   10u  IPv4  97533      0t0  TCP *:mysql (LISTEN)
+
+10).配置环境变量
+[root@lnmp02 mysql]# cp /application/mysql/bin/* /usr/local/sbin/
+[root@lnmp02 mysql]# which mysql
+/usr/local/sbin/mysql
+
+11).登录mysql
+
+[root@lnmp02 mysql]# mysql
+Welcome to the MySQL monitor.  Commands end with ; or \g.
+Your MySQL connection id is 1
+Server version: 5.5.53 MySQL Community Server (GPL)
+
+Copyright (c) 2000, 2016, Oracle and/or its affiliates. All rights reserved.
+
+Oracle is a registered trademark of Oracle Corporation and/or its
+affiliates. Other names may be trademarks of their respective
+owners.
+
+Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+
+mysql> 
+
+===========================================
+配置启动方式
+[root@lnmp02 mysql]# cp support-files/
+binary-configure        config.small.ini        my-innodb-heavy-4G.cnf  my-small.cnf            mysql.server
+config.huge.ini         magic                   my-large.cnf            mysqld_multi.server     ndb-config-2-node.ini
+config.medium.ini       my-huge.cnf             my-medium.cnf           mysql-log-rotate  
+      
+[root@lnmp02 mysql]# cp support-files/mysql.server /etc/init.d/mysqld
+
+[root@lnmp02 mysql]# sed -i 's#/usr/local/mysql#/application/mysql#g' /etc/init.d/mysqld 
+
+[root@lnmp02 mysql]# chmod +x /etc/init.d/mysqld 
+
+杀掉当前进程，直到出现no process killed
+[root@lnmp02 mysql]# killall mysqld
+[root@lnmp02 mysql]# 161213 12:39:38 mysqld_safe mysqld from pid file /application/mysql/data/lnmp02.pid ended
+
+[1]+  Done                    /application/mysql/bin/mysqld_safe
+
+[root@lnmp02 mysql]# killall mysqld
+mysqld: no process killed
+
+[root@lnmp02 mysql]# lsof -i :3306
+
+启动mysql
+[root@lnmp02 mysql]# /etc/init.d/mysqld start
+Starting MySQL.. SUCCESS! 
+在查询
+[root@lnmp02 mysql]# lsof -i :3306
+COMMAND   PID  USER   FD   TYPE DEVICE SIZE/OFF NODE NAME
+mysqld  15331 mysql   10u  IPv4  99795      0t0  TCP *:mysql (LISTEN)
+
+
+[root@lnmp02 mysql]# /etc/init.d/mysqld stop
+Shutting down MySQL.. SUCCESS! 
+[root@lnmp02 mysql]# /etc/init.d/mysqld start
+Starting MySQL.. SUCCESS! 
+
+设置成开机自启动
+[root@lnmp02 mysql]# chkconfig mysqld on
+[root@lnmp02 mysql]# chkconfig --list mysqld
+mysqld          0:off   1:off   2:on    3:on    4:on    5:on    6:off
+
+======================================================================
+
+设置mysql密码
+
+[root@lnmp02 mysql]# pwd
+/application/mysql
+[root@lnmp02 mysql]# mysqladmin -uroot password "123456"
+
+直接mysql登陆不进
+[root@lnmp02 mysql]# mysql
+ERROR 1045 (28000): Access denied for user 'root'@'localhost' (using password: NO)
+
+需要mysql -uroot -p123456 登录
+[root@lnmp02 mysql]# mysql -uroot -p123456
+Welcome to the MySQL monitor.  Commands end with ; or \g.
+Your MySQL connection id is 4
+Server version: 5.5.53 MySQL Community Server (GPL)
+
+Copyright (c) 2000, 2016, Oracle and/or its affiliates. All rights reserved.
+
+Oracle is a registered trademark of Oracle Corporation and/or its
+affiliates. Other names may be trademarks of their respective
+owners.
+
+Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+
+mysql> 
+
+
+更改密码
+[root@lnmp02 mysql]# mysqladmin -uroot -p123456 password "yujiansong"
+
+[root@lnmp02 mysql]# mysql -uroot -pyujiansong
+Welcome to the MySQL monitor.  Commands end with ; or \g.
+Your MySQL connection id is 9
+Server version: 5.5.53 MySQL Community Server (GPL)
+
+Copyright (c) 2000, 2016, Oracle and/or its affiliates. All rights reserved.
+
+Oracle is a registered trademark of Oracle Corporation and/or its
+affiliates. Other names may be trademarks of their respective
+owners.
+
+Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+
+mysql> 
+
+安全登录方式：
+[root@lnmp02 mysql]# mysql -uroot -p
+Enter password: 
+
+
+=============
+安全优化：
+
+mysql> show databases;
++--------------------+
+| Database           |
++--------------------+
+| information_schema |
+| mysql              |
+| performance_schema |
+| test               |
++--------------------+
+4 rows in set (0.68 sec)
+
+mysql> drop database test;
+Query OK, 0 rows affected (0.49 sec)
+
+mysql> show databases;
++--------------------+
+| Database           |
++--------------------+
+| information_schema |
+| mysql              |
+| performance_schema |
++--------------------+
+3 rows in set (0.00 sec)
+
+
+mysql> select user,host from mysql.user;
++------+-----------+
+| user | host      |
++------+-----------+
+| root | 127.0.0.1 |
+| root | ::1       |
+|      | lnmp02    |
+| root | lnmp02    |
+|      | localhost |
+| root | localhost |
++------+-----------+
+6 rows in set (0.01 sec)
+
+
+mysql> drop user "" @'lnmp02';
+Query OK, 0 rows affected (0.39 sec)
+
+mysql> drop user "" @'localhost';
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> select user,host from mysql.user;
++------+-----------+
+| user | host      |
++------+-----------+
+| root | 127.0.0.1 |
+| root | ::1       |
+| root | lnmp02    |
+| root | localhost |
++------+-----------+
+4 rows in set (0.00 sec)
+
+
+mysql> drop user 'root' @'lnmp02';
+Query OK, 0 rows affected (0.05 sec)
+
+mysql> select user,host from mysql.user;
++------+-----------+
+| user | host      |
++------+-----------+
+| root | 127.0.0.1 |
+| root | ::1       |
+| root | localhost |
++------+-----------+
+3 rows in set (0.01 sec)
+
+
+mysql> drop user 'root' @'::1';
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> select user,host from mysql.user;
++------+-----------+
+| user | host      |
++------+-----------+
+| root | 127.0.0.1 |
+| root | localhost |
++------+-----------+
+2 rows in set (0.00 sec)
+
+
+创建用户：
+mysql> grant all on *.* to 'root' @localhost identified by '123456' with grant option; flush privileges;
+Query OK, 0 rows affected (0.00 sec)
+
+Query OK, 0 rows affected (0.01 sec)
+
+
+删除用户中带大写的用户：
+mysql> delete from mysql.user where user="root" and host="A";
+
+刷新让权限生效：
+flush privileges;
+
+========================
+
+mysql 简单命令总结：
+
+help show databases;
+
+查库： show databases;
+
+切库： use mysql 
+
+查表： show tables;
+
+查看用户列表： select user,host from mysql.user;
+
+查看当前用户： select user();
+
+查看当前所在库： select database();
+
+删除数据库： drop database 库名;
+
+删除用户： drop user '用户'@'主机';
+
+===========================
