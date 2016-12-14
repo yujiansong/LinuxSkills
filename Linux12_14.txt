@@ -1,0 +1,142 @@
+
+===============================
+常见的端口
+
+21  ftp
+
+22  ssh
+
+25  smtp
+
+3306 mysql
+
+873 rsync
+
+161 snmp
+
+111 rpcbind
+
+3389 远程桌面
+
+80  www http
+
+443 https
+
+110 pop3
+
+53  dns
+
+514 rsyslog
+
+2049 nfs 
+
+
+[root@mysql-server ~]# grep 161 /etc/services   #查看是什么功能端口
+
+[root@mysql-server ~]# grep '\b161\b' /etc/services 
+snmp            161/tcp                         # Simple Net Mgmt Proto
+snmp            161/udp                         # Simple Net Mgmt Proto
+
+========================================================================
+
+PHP安装
+
+1).查询 PHP 依赖的库
+
+[root@lnmp02 tools]# rpm -qa zlib-devel libxml2-devel libjpeg-devel libi-devel freetype-devel libpng-devel gd-devel curl-devel
+zlib-devel-1.2.3-29.el6.x86_64
+
+安装：
+[root@lnmp02 tools]# yum install zlib-devel libxml2-devel libjpeg-devel libi-devel freetype-devel libpng-devel gd-devel curl-devel -y
+
+可选(可以把安装的yum包留下来  keepcache=1   留的地方在/var/cache/yum/x86_64/6/base/packages/)
+[root@mysql-server ~]# vi /etc/yum.conf    
+[main]
+cachedir=/var/cache/yum/$basearch/$releasever
+keepcache=1
+debuglevel=2
+logfile=/var/log/yum.log
+
+有几个名字变了：
+libjpeg-devel   =====》 libjpeg-turbo-devel-1.2.1-3.e16_5.x86_64 
+curl-devel  =====>  libcurl-devel-7.19.7-52.el6.x86_64
+
+检查一下安装的包
+[root@lnmp02 tools]# rpm -qa zlib-devel libxml2-devel libjpeg-turbo-devel libi-devel freetype-devel libpng-devel gd-devel libcurl-devel
+libpng-devel-1.2.49-2.el6_7.x86_64
+libjpeg-turbo-devel-1.2.1-3.el6_5.x86_64
+libcurl-devel-7.19.7-52.el6.x86_64
+freetype-devel-2.3.11-17.el6.x86_64
+gd-devel-2.0.35-11.el6.x86_64
+libxml2-devel-2.7.6-21.el6_8.1.x86_64
+zlib-devel-1.2.3-29.el6.x86_64
+
+
+=================
+安装libiconv-1.14.tar.gz
+[root@lnmp02 tools]# wget http://ftp.gnu.org/pub/gnu/libiconv/libiconv-1.14.tar.gz
+
+[root@lnmp02 libiconv-1.14]# tar zxf libiconv-1.14.tar.gz 
+
+[root@lnmp02 libiconv-1.14]# cd libiconv-1.14
+
+[root@lnmp02 libiconv-1.14]# ./configure --prefix=/usr/local/libiconv
+
+[root@lnmp02 libiconv-1.14]# make
+
+[root@lnmp02 libiconv-1.14]# make install 
+
+==================
+
+[root@lnmp02 tools]# wget -O /etc/yum.repos.d/epel.repo http://mirrors.aliyun.com/repo/epel-6.repo
+
+==================
+
+安装 yum install libmcrypt-devel -y 
+
+[root@lnmp02 tools]# yum install libmcrypt-devel -y 
+
+
+[root@lnmp02 tools]# rpm -qa libmcrypt-devel
+libmcrypt-devel-2.5.8-9.el6.x86_64
+
+=================
+开始安装 PHP 
+
+[root@lnmp02 tools]# tar xf php-5.3.27.tar.gz 
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+http://wangwq.blog.51cto.com/8711737/1712811
+
+./scripts/mysql_install_db --user=mysql --datadir=/data/mysql   
+改成
+./scripts/mysql_install_db --basedir=/usr/local/mysql --datadir=/data/mysql/ --user=mysql
+
+之后的路径
+cp /application/mysql/bin/* /usr/local/sbin/
+
+
+
+No package php-mcrypt available.
+
+Error: Nothing to do
+
+yum  install epel-release  //扩展包更新包
+
+http://jingyan.baidu.com/article/03b2f78c6dd0ce5ea337ae6d.html
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
