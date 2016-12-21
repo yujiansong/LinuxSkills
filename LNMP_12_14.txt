@@ -1,0 +1,66 @@
+
+============================
+
+mysql 安装注意事项：
+
+http://wangwq.blog.51cto.com/8711737/1712811
+
+./scripts/mysql_install_db --user=mysql --datadir=/data/mysql   
+改成
+./scripts/mysql_install_db --basedir=/usr/local/mysql --datadir=/data/mysql/ --user=mysql
+
+添加 chkconfig --add mysqld 之前
+
+需要添加路径 cp /usr/local/mysql/bin/* /usr/local/sbin/
+
+再执行
+ chkconfig --add mysqld 
+ chkconfig mysqld on 
+ service mysqld start
+ 
+ 设置密码：
+ [root@bestjiansong mysql]# mysqladmin -uroot password "123456"  
+========================
+
+php安装注意事项：
+
+No package php-mcrypt available.
+
+Error: Nothing to do
+
+出现此问题需要先安装 epel-release
+
+yum  install epel-release  //扩展包更新包
+
+http://jingyan.baidu.com/article/03b2f78c6dd0ce5ea337ae6d.html
+
+
+==========================
+Nginx安装注意事项：
+
+下载地址：
+wget -q http://nginx.org/download/nginx-1.8.1.tar.gz
+
+
+
+
+===============================
+http://wangwq.blog.51cto.com/8711737/1712811
+
+PHP 配置 可以不用修改
+
+
++++++++++++++++++++
+WordPress
+
+yujiansong
+
+ko66321be
+
+ok520koa@163.com 
+++++++++++++++++++
+jiansong
+
+ok66321k
+
+ok520koa@163.com 
