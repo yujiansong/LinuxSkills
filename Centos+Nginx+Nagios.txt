@@ -1,0 +1,89 @@
+
+========================================
+192.168.150.135
+
+[root@bestjiansong nagios-cn-3.2.3]# groupadd nagcmd
+[root@bestjiansong nagios-cn-3.2.3]# usermod -a -G nagcmd nagios
+
+2.nagios-plugins安装
+
+[root@bestjiansong nagios-plugins-2.1.2]# ./configure --prefix=/usr/local/nagios --with-mysql=/data/mysql/
+========================================
+http://scholar.blog.51cto.com/9985645/1635834
+编译安装LAMP及分离式LAMP平台构建
+./configure --prefix=/usr/local/apache --sysconfdir=/etc/httpd24 --enable-so --enable-ssl --enable-cgi --enable-rewrite --enable-deflate --with-zlib --with-pcre --with-apr=/usr/local/apr --with-apr-util=/usr/local/apr-util/ --enable-mpms-shared=all --with-mpm=event --enable-modules=most
+
+出现
+checking for OpenSSL version >= 0.9.7… FAILED
+configure: WARNING: OpenSSL version is too old
+no
+checking whether to enable mod_ssl… configure: error: mod_ssl has been requested but can not be built due to prerequisite failures
+解决办法
+. 代码如下:
+yum install openssl-devel
+yum update openssl
+
+
+=====================================================
+http://11538244.blog.51cto.com/11528244/1851350
+
+http://strugglelinux.blog.51cto.com/1009905/575365
+
+
+[root@bestjiansong nrpe-3.0.1]# htpasswd -c /usr/local/etc/htpasswd.users tomcat
+New password: 
+Re-type new password: 
+Adding password for user tomcat
+
+用下面这个：
+[root@bestjiansong nrpe-3.0.1]# htpasswd -c /usr/local/nagios/etc/htpasswd.users tomcat
+New password: 
+Re-type new password: 
+Adding password for user tomcat
+
+
+
+./configure --prefix=/usr/local/apache --sysconfdir=/etc/httpd --enable-so --enable-ssl --enable-cgi --enable-rewrite --with-zlib --with-pcre=/usr/local/pcre --with-apr=/usr/local/apr --with-apr-util=/usr/local/apr-util/ --enable-modules=most --enable-mpms-shared=all --with-mpm=event
+
+
+make && make install
+
+
+================================
+http://www.110monitor.com/open/alert/nagios_cnyunwei.jsp
+
+
+sudo AppKey=927541a0-ccf2-472d-dbab-70006632088a Plugin=nagios sh -c "$(curl -L https://raw.githubusercontent.com/oneapm/onealert-agent-installer/master/onealert-nagios-install-centos6.sh)
+
+
+
+
+
+tar xvf alert-agent-4.0.1-RC2.tar.gz
+cp -R alert-agent /usr/local/nagios/libexec/
+cp alert-agent/plugin/nagios-plugin/nagios /usr/local/nagios/libexec/
+chmod +x /usr/local/nagios/libexec/nagios
+cp alert-agent/plugin/nagios-plugin/110monitor.cfg /usr/local/nagios/etc/objects/
+cd /usr/local/nagios/libexec/
+chown -R nagios:nagios alert-agent/
+chown nagios:nagios nagios
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
