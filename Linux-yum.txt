@@ -161,7 +161,7 @@ ssh-rsa 2048 b8:72:f9:33:b1:ae:54:02:68:69:82:f5:c8:ab:e8:69
 		执行完成后 ls  发现已经成了 Makefile
 6).  make  编译
      
-	 *如果5,6出错 则执行 make laean  
+	 *如果5,6出错 则执行 make clean  
 
 7). make install 编译安装 
 
