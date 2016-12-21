@@ -324,4 +324,31 @@ help show databases;
 
 删除用户： drop user '用户'@'主机';
 
+
+增加用户 test4 密码 123456,让它可以在任何主机上登录，并对所有数据库有查询，插入，修改，删除的权限：
+
+方法1：在192.168.150.135上设置，让test4@192.168.150.148可以在192.168.150.148上可以访问
+mysql> grant all privileges on *.* to test4@192.168.150.148 identified by "123456" with grant option;    
+Query OK, 0 rows affected (0.01 sec)
+
+mysql> flush privileges;
+Query OK, 0 rows affected (0.00 sec)
+
+在另一台机器上192.168.150.148登录
+[root@bestjiansong ~]# mysql -h 192.168.150.135 -utest4 -p
+Enter password: 
+Welcome to the MySQL monitor.  Commands end with ; or \g.
+
+方法2：
+mysql> grant select,insert,update,delete on *.* to test5@192.168.150.148 identified by "123456" with grant option;
+Query OK, 0 rows affected (0.01 sec)
+
+mysql> flush privileges;
+Query OK, 0 rows affected (0.01 sec)
+
+在另一台机器上192.168.150.148登录
+[root@bestjiansong ~]# mysql -h 192.168.150.135 -utest5 -p
+Enter password: 
+Welcome to the MySQL monitor.  Commands end with ; or \g.
+
 ===========================
