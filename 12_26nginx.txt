@@ -1,0 +1,535 @@
+
+==================================
+
+[root@lnmp02 ~]# curl -I www.taobao.com
+HTTP/1.1 302 Found
+Server: Tengine
+Date: Mon, 26 Dec 2016 02:24:35 GMT
+Content-Type: text/html
+Content-Length: 258
+Connection: keep-alive
+Location: https://www.taobao.com/
+Set-Cookie: thw=cn; Path=/; Domain=.taobao.com; Expires=Tue, 26-Dec-17 02:24:35 GMT;
+Strict-Transport-Security: max-age=31536000
+
+===================================
+Nginx支持虚拟主机：
+
+一个server标签就是一个虚拟主机
+
+1.基于域名的虚拟主机。通过域名来分析虚拟主机 ===》 应用：外部网站 (*****)
+
+2.基于端口的虚拟主机。通过端口来区分虚拟主机 ===》 应用：公司内部网站，网站的后台。
+
+3.基于IP的虚拟主机。 几乎不用，不支持ifconfig别名，配置文件可以。
+
+==================================
+Nginx安装：
+
+a.安装PCRE (Perl Compatible Regular Expression)
+pcre (Perl兼容正则表达式)
+
+HTTP rewrite module requires the pcre library.
+
+
+先查看一下服务器版本：
+[root@lnmp02 ~]# cat /etc/redhat-release 
+CentOS release 6.3 (Final)
+
+[root@lnmp02 ~]# uname -r
+2.6.32-279.el6.x86_64
+
+[root@lnmp02 ~]# uname -m
+x86_64
+
+查看所依赖的包是否存在：
+[root@lnmp02 ~]# rpm -qa pcre pcre-devel
+pcre-devel-7.8-7.el6.x86_64
+pcre-7.8-7.el6.x86_64
+
+
+b. SSL modules require the OpenSSL library 
+
+yum install openssl-devel -y 
+
+[root@lnmp02 ~]# rpm -qa openssl openssl-devel
+openssl-1.0.1e-48.el6_8.3.x86_64
+openssl-devel-1.0.1e-48.el6_8.3.x86_64
+
+3.安装Nginx
+
+创建用户：
+useradd nginx -s /sbin/nologin -M
+
+[root@lnmp02 nginx-1.6.3]# id nginx
+uid=503(nginx) gid=503(nginx) groups=503(nginx
+
+
+到指定路径下载Nginx：
+[root@lnmp02 tools]# pwd
+/home/jiansong/tools
+
+[root@lnmp02 tools]# wget -q http://nginx.org/download/nginx-1.6.3.tar.gz
+
+下载之后查看一下：
+[root@lnmp02 tools]# ls
+nginx-1.6.3.tar.gz
+
+[root@lnmp02 tools]# ls -lk nginx-1.6.3.tar.gz 
+-rw-r--r-- 1 root root 787 Apr  8  2015 nginx-1.6.3.tar.gz
+
+解压：
+[root@lnmp02 tools]# tar xf nginx-1.6.3.tar.gz 
+
+[root@lnmp02 tools]# ls
+nginx-1.6.3  nginx-1.6.3.tar.gz
+
+[root@lnmp02 nginx-1.6.3]# tree|wc -l
+404
+
+配置：
+[root@lnmp02 nginx-1.6.3]# ./configure --prefix=/application/nginx-1.6.3 --user=nginx --group=nginx --with-http_ssl_module --with-http_stub_status_module
+
+[root@lnmp02 nginx-1.6.3]# echo $?
+0
+
+编译：
+make
+
+[root@lnmp02 nginx-1.6.3]# echo $?
+0
+安装：
+make install 
+
+[root@lnmp02 nginx-1.6.3]# echo $?
+0
+
+安装完成后：
+[root@lnmp02 nginx-1.6.3]# cd ..
+
+[root@lnmp02 tools]# ls
+nginx-1.6.3  nginx-1.6.3.tar.gz
+
+[root@lnmp02 tools]# ll /application/nginx-1.6.3/ -ld
+drwxr-xr-x 11 root root 4096 Nov 15 03:15 /application/nginx-1.6.3/
+
+访问的时候去掉版本号，（做软链接）
+[root@lnmp02 tools]# ln -s /application/nginx-1.6.3/ /application/nginx
+
+[root@lnmp02 tools]# ls -l /application/
+total 4
+lrwxrwxrwx  1 root root   25 Nov 15 03:05 nginx -> /application/nginx-1.6.3/
+drwxr-xr-x 11 root root 4096 Dec 26 13:24 nginx-1.6.3
+
+安装完毕
+============================
+
+启动Nginx：
+[root@lnmp02 tools]# /application/nginx/sbin/nginx
+
+[root@lnmp02 tools]# ps -ef|grep nginx|grep -v grep
+root     11504     1  0 13:46 ?        00:00:00 nginx: master process /application/nginx/sbin/nginx
+nginx    11505 11504  0 13:46 ?        00:00:00 nginx: worker process 
+
+[root@lnmp02 tools]# ss -lntup|grep nginx
+tcp    0      128                         *:80                         *:*      users:(("nginx",11504,6),("nginx",11505,6))
+或者：
+[root@lnmp02 tools]# ss -lntup|grep 80
+tcp    0      128                         *:80                         *:*      users:(("nginx",11504,6),("nginx",11505,6))
+
+本地用curl 访问：
+[root@lnmp02 tools]# curl 127.0.0.1
+<!DOCTYPE html>
+<html>
+<head>
+<title>yujiansong, s Nginx server blog.</title>
+<style>
+    body {
+        width: 35em;
+        margin: 0 auto;
+        font-family: Tahoma, Verdana, Arial, sans-serif;
+    }
+</style>
+</head>
+<body>
+<h1>Welcome to my github!</h1>
+Hi, my Github is 
+<a
+href="https://github.com/yujiansong">
+https://github.com/yujiansong</a>
+<p><em>Thank you for using github.</em></p>
+</body>
+</html>
+
+================================================
+
+查看软件编译参数：
+[root@lnmp02 tools]# /application/nginx/sbin/nginx -V
+nginx version: nginx/1.6.3
+built by gcc 4.4.6 20120305 (Red Hat 4.4.6-4) (GCC) 
+TLS SNI support enabled
+configure arguments: --prefix=/application/nginx-1.6.3 --user=nginx --group=nginx --with-http_ssl_module --with-http_stub_status_module
+
+排错查看信息：
+[root@lnmp02 tools]# cat /var/log/messages
+
+[root@lnmp02 tools]# cat /application/nginx/logs/error.log 
+2016/11/15 03:19:32 [emerg] 645#0: bind() to 0.0.0.0:80 failed (98: Address already in use)
+2016/11/15 03:19:32 [emerg] 645#0: bind() to 0.0.0.0:80 failed (98: Address already in use)
+2016/11/15 03:19:32 [emerg] 645#0: bind() to 0.0.0.0:80 failed (98: Address already in use)
+
+===============================================
+部署一个web站点：
+[root@lnmp02 tools]# cd /application/nginx
+
+[root@lnmp02 nginx]# ls
+client_body_temp  conf  fastcgi_temp  html  logs  nginx-1.6.3  proxy_temp  sbin  scgi_temp  uwsgi_temp
+
+[root@lnmp02 nginx]# pwd
+/application/nginx
+
+排除临时文件：
+[root@lnmp02 nginx]# ls -l|grep -v temp
+total 36
+drwxr-xr-x 2 root  root 4096 Nov 27 18:48 conf   配置文件目录
+drwxr-xr-x 2 root  root 4096 Nov 27 18:37 html   默认网站目录
+drwxr-xr-x 2 root  root 4096 Dec 26 13:46 logs   日志信息
+lrwxrwxrwx 1 root  root   25 Dec 26 13:24 nginx-1.6.3 -> /application/nginx-1.6.3/
+drwxr-xr-x 2 root  root 4096 Dec 26 13:17 sbin    启动命令
+
+编写index.html文件，在客户端进行访问 192.168.150.144（不修改配置文件，不需要重启Nginx） 
+[root@lnmp02 html]# pwd
+/application/nginx/html
+
+[root@lnmp02 html]# ls
+50x.html  index.html  index.html_20161226
+
+
+[root@lnmp02 html]# curl -I 192.168.150.134
+HTTP/1.1 200 OK
+Server: nginx/1.6.3
+Date: Mon, 26 Dec 2016 06:34:51 GMT
+Content-Type: text/html
+Content-Length: 373844
+Last-Modified: Mon, 26 Dec 2016 06:27:21 GMT
+Connection: keep-alive
+ETag: "5860b849-5b454"
+Accept-Ranges: bytes
+
+Nginx的配置文件：
+[root@lnmp02 conf]# ls -l nginx.conf  
+-rw-r--r-- 1 root root 2656 Nov 15 04:16 nginx.conf  (核心配置文件)
+
+默认站点是 html 
+-rw-r--r-- 1 root root 2656 Nov 15 04:16 nginx.conf
+[root@lnmp02 conf]# grep root nginx.conf
+            root   html;
+            root   html;
+        #    root           html;
+        # deny access to .htaccess files, if Apache's document root
+    #        root   html;
+    #        root   html;
+	
+
+=====================================
+│   ├── fastcgi.conf
+
+│   ├── nginx.conf   主配置文件
+
+
+Main区，核心功能模块：
+worker_processes  1;
+
+#error_log  logs/error.log;
+#error_log  logs/error.log  notice;
+#error_log  logs/error.log  info;
+
+#pid        logs/nginx.pid;
+
+
+Events区：
+events {
+    worker_connections  1024;
+}
+
+HTTP模块：
+http {
+    include       mime.types;
+    default_type  application/octet-stream;
+
+    #log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
+    #                  '$status $body_bytes_sent "$http_referer" '
+    #                  '"$http_user_agent" "$http_x_forwarded_for"';
+
+    #access_log  logs/access.log  main;
+	...
+
+server 标签：(一个server标签就是一个虚拟主机)	
+  server {
+        listen       80;
+        server_name  localhost;
+
+        #charset koi8-r;
+
+        #access_log  logs/host.access.log  main;
+  ...
+  
+所有请求：
+ location / {
+            root   html;
+            index  index.html index.htm;
+        }
+  
+==============================
+基于域名的虚拟主机：
+
+[root@lnmp02 conf]# egrep -v "#|^$" nginx.conf.default 
+worker_processes  1;
+events {
+    worker_connections  1024;
+}
+http {
+    include       mime.types;
+    default_type  application/octet-stream;
+    sendfile        on;
+    keepalive_timeout  65;
+    server {
+        listen       80;
+        server_name  localhost;
+        location / {
+            root   html;
+            index  index.html index.htm;
+        }
+        error_page   500 502 503 504  /50x.html;
+        location = /50x.html {
+            root   html;
+        }
+    }
+}
+
+把内容定向到 nginx.conf 
+[root@lnmp02 conf]# egrep -v "#|^$" nginx.conf.default > nginx.conf
+
+[root@lnmp02 conf]# cat nginx.conf
+worker_processes  1;
+events {
+    worker_connections  1024;
+}
+http {
+    include       mime.types;
+    default_type  application/octet-stream;
+    sendfile        on;
+    keepalive_timeout  65;
+    server {
+        listen       80;
+        server_name  localhost;
+        location / {
+            root   html;
+            index  index.html index.htm;
+        }
+        error_page   500 502 503 504  /50x.html;
+        location = /50x.html {
+            root   html;
+        }
+    }
+}
+
+
+配置两个虚拟主机
+http {
+    include       mime.types;
+    default_type  application/octet-stream;
+    sendfile        on;
+    keepalive_timeout  65;
+    server {
+        listen       80;
+        server_name  www.yujiansong.org;
+        location / {
+            root   html/www;
+            index  index.html index.htm;
+        }
+    }
+    server {
+        listen       80;
+        server_name  bbs.yujiansong.org;
+        location / {
+            root   html/bbs;
+            index  index.html index.htm;
+        }
+    }
+}
+
+创建站点 www,bbs 
+[root@lnmp02 conf]# mkdir ../html/{www,bbs} -p
+
+[root@lnmp02 conf]# tree ../html/
+../html/
+├── 50x.html
+├── bbs
+├── index.html
+├── index.html_20161226
+├── index.html_hnust
+└── www
+
+在 www站点目录编辑 index.html 文件
+[root@lnmp02 nginx]# cd html/
+[root@lnmp02 html]# ls
+50x.html  bbs  index.html  index.html_20161226  index.html_hnust  www
+[root@lnmp02 html]# cd www
+[root@lnmp02 www]# ls
+[root@lnmp02 www]# vim index.html
+
+在bbs站点编辑 index.html 文件
+ 1412  cd bbs/
+ 1413  ls
+ 1414  vim index.html
+ 
+之后可以查看一下
+[root@lnmp02 conf]# tree ../html/
+../html/
+├── 50x.html
+├── bbs
+│   └── index.html
+├── index.html
+├── index.html_20161226
+├── index.html_hnust
+└── www
+    └── index.html
+	
+检查语法：
+[root@lnmp02 conf]# /application/nginx/sbin/nginx -t
+nginx: the configuration file /application/nginx-1.6.3/conf/nginx.conf syntax is ok
+nginx: configuration file /application/nginx-1.6.3/conf/nginx.conf test is successful
+
+重新加载：
+[root@lnmp02 conf]# /application/nginx/sbin/nginx -s reload
+
+在Linux客户端做域名解析：
+[root@lnmp02 conf]# vim /etc/hosts
+127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4
+::1         localhost localhost.localdomain localhost6 localhost6.localdomain6
+192.168.150.130 bestjiansong
+192.168.150.134 www.yujiansong.org
+192.168.150.134 bbs.yujiansong.org
+
+然后ping www.yujiansong.org  , bbs.yujiansong.org
+
+[root@lnmp02 conf]# ping www.yujiansong.org
+PING www.yujiansong.org (192.168.150.134) 56(84) bytes of data.
+64 bytes from www.yujiansong.org (192.168.150.134): icmp_seq=1 ttl=64 time=0.174 ms
+64 bytes from www.yujiansong.org (192.168.150.134): icmp_seq=2 ttl=64 time=0.187 ms
+64 bytes from www.yujiansong.org (192.168.150.134): icmp_seq=3 ttl=64 time=0.186 ms
+
+1442  curl www.yujainsong.org
+1443  curl bbs.yujiansong.org
+
+在windows中进行测试：
+运行 ===》 drivers ===》etc ===》 hosts 
+添加
+192.168.150.134 www.yujiansong.org
+192.168.150.134 bbs.yujiansong.org
+
+然后在网页上输入www.yujiansong.org，bbs.yujiansong.org
+ 
+*当配置多个虚拟主机的时候，输入IP 会找第一个
+=========================================================
+基于端口的虚拟主机配置：
+[root@lnmp02 conf]# vim nginx.conf
+http {
+    include       mime.types;
+    default_type  application/octet-stream;
+    sendfile        on;
+    keepalive_timeout  65;
+    server {
+        listen       8001;
+        server_name  www.yujiansong.org;
+        location / {
+            root   html/www;
+            index  index.html index.htm;
+        }
+    }
+    server {
+        listen       8002;
+        server_name  bbs.yujiansong.org;
+        location / {
+            root   html/bbs;
+            index  index.html index.htm;
+        }
+    }
+    server {
+        listen       8003;
+        server_name  blog.yujiansong.org;
+        location / {
+            root   html/blog;
+            index  index.html index.htm;
+        }
+    }
+}
+"nginx.conf" 34L, 762C written      
+                                                                   
+[root@lnmp02 conf]# /application/nginx/sbin/nginx -t
+nginx: the configuration file /application/nginx-1.6.3/conf/nginx.conf syntax is ok
+nginx: configuration file /application/nginx-1.6.3/conf/nginx.conf test is successful
+
+[root@lnmp02 conf]# /application/nginx/sbin/nginx -s reload
+
+[root@lnmp02 conf]# netstat -lntup|grep nginx
+tcp        0      0 0.0.0.0:8001                0.0.0.0:*                   LISTEN      11504/nginx         
+tcp        0      0 0.0.0.0:8002                0.0.0.0:*                   LISTEN      11504/nginx         
+tcp        0      0 0.0.0.0:8003                0.0.0.0:*                   LISTEN      11504/nginx   
+
+[root@lnmp02 conf]# curl www.yujiansong.org
+curl: (7) couldn't connect to host
+
+正确访问方式：
+[root@lnmp02 conf]# curl www.yujiansong.org:8001
+
+
+[root@lnmp02 conf]# curl bbs.yujiansong.org:8002
+
+
+[root@lnmp02 conf]# curl blog.yujiansong.org:8003
+or 
+[root@lnmp02 conf]# curl http://bbs.yujiansong.org:8002
+
+域名相同，通过端口来区分：
+[root@lnmp02 conf]# cat nginx.conf
+worker_processes  1;
+events {
+    worker_connections  1024;
+}
+http {
+    include       mime.types;
+    default_type  application/octet-stream;
+    sendfile        on;
+    keepalive_timeout  65;
+    server {
+        listen       8001;
+        server_name  www.yujiansong.org;
+        location / {
+            root   html/www;
+            index  index.html index.htm;
+        }
+    }
+    server {
+        listen       8002;
+        server_name  www.yujiansong.org;
+        location / {
+            root   html/bbs;
+            index  index.html index.htm;
+        }
+    }
+    server {
+        listen       8003;
+        server_name  www.yujiansong.org;
+        location / {
+            root   html/blog;
+            index  index.html index.htm;
+        }
+    }
+}
+
+ 1519  curl http://www.yujiansong.org:8001
+ 1520  curl http://www.yujiansong.org:8002
+ 1521  curl http://www.yujiansong.org:8003
+===========================
