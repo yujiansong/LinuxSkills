@@ -277,9 +277,374 @@ mysql> select prod_price from products order by prod_price desc limit 1;
 +------------+
 1 row in set (0.00 sec)
 
+============================================
+第六章：
+
+只返回 prod_price 值为2.5 的行：
+
+mysql> select prod_name,prod_price from products where prod_price=2.50;
++---------------+------------+
+| prod_name     | prod_price |
++---------------+------------+
+| Carrots       |       2.50 |
+| TNT (1 stick) |       2.50 |
++---------------+------------+
+2 rows in set (0.02 sec)
+
+检查单个值：
+mysql> select prod_name,prod_price from products where prod_name='fuses';
++-----------+------------+
+| prod_name | prod_price |
++-----------+------------+
+| Fuses     |       3.42 |
++-----------+------------+
+1 row in set (0.00 sec)
+
+列出价格小于 10 美元的所有产品：
+mysql> select prod_name,prod_price from products where prod_price < 10;
++---------------+------------+
+| prod_name     | prod_price |
++---------------+------------+
+| .5 ton anvil  |       5.99 |
+| 1 ton anvil   |       9.99 |
+| Carrots       |       2.50 |
+| Fuses         |       3.42 |
+| Oil can       |       8.99 |
+| Sling         |       4.49 |
+| TNT (1 stick) |       2.50 |
++---------------+------------+
+7 rows in set (0.00 sec)
+
+列出价格小于等于 10 美元的所有产品：
+mysql> select prod_name,prod_price from products where prod_price <= 10;
++----------------+------------+
+| prod_name      | prod_price |
++----------------+------------+
+| .5 ton anvil   |       5.99 |
+| 1 ton anvil    |       9.99 |
+| Bird seed      |      10.00 |
+| Carrots        |       2.50 |
+| Fuses          |       3.42 |
+| Oil can        |       8.99 |
+| Sling          |       4.49 |
+| TNT (1 stick)  |       2.50 |
+| TNT (5 sticks) |      10.00 |
++----------------+------------+
+9 rows in set (0.00 sec)
+
+不匹配检查：
+mysql> select vend_id,prod_name from products where vend_id <> 1003;
++---------+--------------+
+| vend_id | prod_name    |
++---------+--------------+
+|    1001 | .5 ton anvil |
+|    1001 | 1 ton anvil  |
+|    1001 | 2 ton anvil  |
+|    1002 | Fuses        |
+|    1005 | JetPack 1000 |
+|    1005 | JetPack 2000 |
+|    1002 | Oil can      |
++---------+--------------+
+7 rows in set (0.00 sec)
+
+检索价格在5美元和10美元之间的所有产品：
+mysql> select prod_name,prod_price from products where prod_price between 5 and 10;
++----------------+------------+
+| prod_name      | prod_price |
++----------------+------------+
+| .5 ton anvil   |       5.99 |
+| 1 ton anvil    |       9.99 |
+| Bird seed      |      10.00 |
+| Oil can        |       8.99 |
+| TNT (5 sticks) |      10.00 |
++----------------+------------+
+5 rows in set (0.01 sec)
+
+检查具有null值得列：
+mysql> select prod_name from products where prod_price is null;
+Empty set (0.00 sec)
+
+mysql> select cust_id from customers where cust_email is null;
++---------+
+| cust_id |
++---------+
+|   10002 |
+|   10005 |
++---------+
+2 rows in set (0.01 sec)
 
 
+=======================================
+第七章：
 
+and操作符：
+mysql> select prod_id,prod_price,prod_name from products where vend_id = 1003 and prod_price <= 10;
++---------+------------+----------------+
+| prod_id | prod_price | prod_name      |
++---------+------------+----------------+
+| FB      |      10.00 | Bird seed      |
+| FC      |       2.50 | Carrots        |
+| SLING   |       4.49 | Sling          |
+| TNT1    |       2.50 | TNT (1 stick)  |
+| TNT2    |      10.00 | TNT (5 sticks) |
++---------+------------+----------------+
+5 rows in set (0.00 sec)
+
+or操作符：
+mysql> select vend_id,prod_name,prod_price from products where vend_id = 1002 or vend_id = 1003;
++---------+----------------+------------+
+| vend_id | prod_name      | prod_price |
++---------+----------------+------------+
+|    1003 | Detonator      |      13.00 |
+|    1003 | Bird seed      |      10.00 |
+|    1003 | Carrots        |       2.50 |
+|    1002 | Fuses          |       3.42 |
+|    1002 | Oil can        |       8.99 |
+|    1003 | Safe           |      50.00 |
+|    1003 | Sling          |       4.49 |
+|    1003 | TNT (1 stick)  |       2.50 |
+|    1003 | TNT (5 sticks) |      10.00 |
++---------+----------------+------------+
+9 rows in set (0.00 sec)
+
+计算次序：
+
+mysql> select vend_id,prod_name,prod_price from products where vend_id = 1002 or vend_id = 1003 and prod_price >= 10;
++---------+----------------+------------+
+| vend_id | prod_name      | prod_price |
++---------+----------------+------------+
+|    1003 | Detonator      |      13.00 |
+|    1003 | Bird seed      |      10.00 |
+|    1002 | Fuses          |       3.42 |
+|    1002 | Oil can        |       8.99 |
+|    1003 | Safe           |      50.00 |
+|    1003 | TNT (5 sticks) |      10.00 |
++---------+----------------+------------+
+6 rows in set (0.00 sec)
+
+mysql> select vend_id,prod_name,prod_price from products where (vend_id = 1002 or vend_id = 1003) and prod_price >= 10;
++---------+----------------+------------+
+| vend_id | prod_name      | prod_price |
++---------+----------------+------------+
+|    1003 | Detonator      |      13.00 |
+|    1003 | Bird seed      |      10.00 |
+|    1003 | Safe           |      50.00 |
+|    1003 | TNT (5 sticks) |      10.00 |
++---------+----------------+------------+
+4 rows in set (0.00 sec)
+
+in操作符：
+mysql> select vend_id,prod_name,prod_price from products where vend_id in (1002,1003) order by prod_name;
++---------+----------------+------------+
+| vend_id | prod_name      | prod_price |
++---------+----------------+------------+
+|    1003 | Bird seed      |      10.00 |
+|    1003 | Carrots        |       2.50 |
+|    1003 | Detonator      |      13.00 |
+|    1002 | Fuses          |       3.42 |
+|    1002 | Oil can        |       8.99 |
+|    1003 | Safe           |      50.00 |
+|    1003 | Sling          |       4.49 |
+|    1003 | TNT (1 stick)  |       2.50 |
+|    1003 | TNT (5 sticks) |      10.00 |
++---------+----------------+------------+
+9 rows in set (0.00 sec)
+
+mysql> select vend_id,prod_name,prod_price from products where vend_id = 1002 or vend_id = 1003 order by prod_name; 
++---------+----------------+------------+
+| vend_id | prod_name      | prod_price |
++---------+----------------+------------+
+|    1003 | Bird seed      |      10.00 |
+|    1003 | Carrots        |       2.50 |
+|    1003 | Detonator      |      13.00 |
+|    1002 | Fuses          |       3.42 |
+|    1002 | Oil can        |       8.99 |
+|    1003 | Safe           |      50.00 |
+|    1003 | Sling          |       4.49 |
+|    1003 | TNT (1 stick)  |       2.50 |
+|    1003 | TNT (5 sticks) |      10.00 |
++---------+----------------+------------+
+9 rows in set (0.00 sec)
+
+Not 操作符：
+mysql> select vend_id,prod_name,prod_price from products where vend_id not in (1002,1003) order by prod_name;
++---------+--------------+------------+
+| vend_id | prod_name    | prod_price |
++---------+--------------+------------+
+|    1001 | .5 ton anvil |       5.99 |
+|    1001 | 1 ton anvil  |       9.99 |
+|    1001 | 2 ton anvil  |      14.99 |
+|    1005 | JetPack 1000 |      35.00 |
+|    1005 | JetPack 2000 |      55.00 |
++---------+--------------+------------+
+5 rows in set (0.00 sec)
+
+============================================
+第八章：
+
+like操作符：
+
+%
+mysql> select prod_id,prod_name from products where prod_name like 'jet%';
++---------+--------------+
+| prod_id | prod_name    |
++---------+--------------+
+| JP1000  | JetPack 1000 |
+| JP2000  | JetPack 2000 |
++---------+--------------+
+2 rows in set (0.00 sec)
+
+mysql> select prod_id,prod_name from products where prod_name like '%anvil%';
++---------+--------------+
+| prod_id | prod_name    |
++---------+--------------+
+| ANV01   | .5 ton anvil |
+| ANV02   | 1 ton anvil  |
+| ANV03   | 2 ton anvil  |
++---------+--------------+
+3 rows in set (0.00 sec)
+
+mysql> select prod_name from products where prod_name like 's%e';
++-----------+
+| prod_name |
++-----------+
+| Safe      |
++-----------+
+1 row in set (0.00 sec)
+
+使用下划线  _  通配符
+
+mysql> select prod_id,prod_name from products where prod_name like '_ ton anvil';
++---------+-------------+
+| prod_id | prod_name   |
++---------+-------------+
+| ANV02   | 1 ton anvil |
+| ANV03   | 2 ton anvil |
++---------+-------------+
+2 rows in set (0.00 sec)
+
+
+mysql> select prod_id,prod_name from products where prod_name like '% ton anvil';
++---------+--------------+
+| prod_id | prod_name    |
++---------+--------------+
+| ANV01   | .5 ton anvil |
+| ANV02   | 1 ton anvil  |
+| ANV03   | 2 ton anvil  |
++---------+--------------+
+3 rows in set (0.00 sec)
+
+=======================================
+第九章：
+
+用正则表达式进行搜索：
+mysql> select prod_name from products where prod_name regexp '1000' order by prod_name;
++--------------+
+| prod_name    |
++--------------+
+| JetPack 1000 |
++--------------+
+1 row in set (0.02 sec)
+
+mysql> select prod_name from products where prod_name regexp '.000' order by prod_name;
++--------------+
+| prod_name    |
++--------------+
+| JetPack 1000 |
+| JetPack 2000 |
++--------------+
+2 rows in set (0.00 sec)
+
+进行Or匹配： | 
+
+mysql> select prod_name from products where prod_name regexp '1000|2000' order by prod_name;
++--------------+
+| prod_name    |
++--------------+
+| JetPack 1000 |
+| JetPack 2000 |
++--------------+
+2 rows in set (0.00 sec)
+
+匹配几个字符之一：
+mysql> select prod_name from products where prod_name regexp '[123] Ton' order by prod_name;
++-------------+
+| prod_name   |
++-------------+
+| 1 ton anvil |
+| 2 ton anvil |
++-------------+
+2 rows in set (0.01 sec)
+
+mysql> select prod_name from products where prod_name regexp '1|2|3 ton' order by prod_name;
++---------------+
+| prod_name     |
++---------------+
+| 1 ton anvil   |
+| 2 ton anvil   |
+| JetPack 1000  |
+| JetPack 2000  |
+| TNT (1 stick) |
++---------------+
+5 rows in set (0.00 sec)
+
+mysql> select prod_name from products where prod_name regexp '[1-5] ton' order by prod_name;
++--------------+
+| prod_name    |
++--------------+
+| .5 ton anvil |
+| 1 ton anvil  |
+| 2 ton anvil  |
++--------------+
+3 rows in set (0.00 sec)
+
+mysql> select vend_name from vendors where vend_name regexp '\\.' order by vend_name;
++--------------+
+| vend_name    |
++--------------+
+| Furball Inc. |
++--------------+
+1 row in set (0.00 sec)
+
+mysql> select prod_name from products where prod_name regexp '\\([0-9] sticks?\\)' order by prod_name;
++----------------+
+| prod_name      |
++----------------+
+| TNT (1 stick)  |
+| TNT (5 sticks) |
++----------------+
+2 rows in set (0.00 sec)
+
+
+mysql> select prod_name from products where prod_name regexp '[[:digit:]]{4}' order by prod_name;
++--------------+
+| prod_name    |
++--------------+
+| JetPack 1000 |
+| JetPack 2000 |
++--------------+
+2 rows in set (0.00 sec)
+
+mysql> select prod_name from products where prod_name regexp '[0-9][0-9][0-9][0-9]' order by prod_name;
++--------------+
+| prod_name    |
++--------------+
+| JetPack 1000 |
+| JetPack 2000 |
++--------------+
+2 rows in set (0.00 sec)
+
+mysql> select prod_name from products where prod_name regexp '^[0-9\\.]' order by prod_name;
++--------------+
+| prod_name    |
++--------------+
+| .5 ton anvil |
+| 1 ton anvil  |
+| 2 ton anvil  |
++--------------+
+3 rows in set (0.01 sec)
+
+======================================
 
 
 
