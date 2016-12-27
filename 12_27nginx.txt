@@ -1,0 +1,479 @@
+
+================================================
+企业场景中Nginx重启之后的检测策略：
+
+重启之前要进行检查：
+[root@lnmp02 ~]# /application/nginx/sbin/nginx -t
+nginx: the configuration file /application/nginx-1.6.3/conf/nginx.conf syntax is ok
+nginx: configuration file /application/nginx-1.6.3/conf/nginx.conf test is successful
+
+其他参数：
+[root@lnmp02 ~]# /application/nginx/sbin/nginx -h
+nginx version: nginx/1.6.3
+Usage: nginx [-?hvVtq] [-s signal] [-c filename] [-p prefix] [-g directives]
+
+Options:
+  -?,-h         : this help
+  -v            : show version and exit
+  -V            : show version and configure options then exit
+  -t            : test configuration and exit
+  -q            : suppress non-error messages during configuration testing
+  -s signal     : send signal to a master process: stop, quit, reopen, reload
+  -p prefix     : set prefix path (default: /application/nginx-1.6.3/)
+  -c filename   : set configuration file (default: conf/nginx.conf)
+  -g directives : set global directives out of configuration file
+=====================================
+优化Nginx配置文件：
+[root@lnmp02 conf]# cat nginx.conf
+worker_processes  1;
+events {
+    worker_connections  1024;
+}
+http {
+    include       mime.types;
+    default_type  application/octet-stream;
+    sendfile        on;
+    keepalive_timeout  65;
+    #nginx vhosts config
+    include extra/www.conf;    #把www,bbs,blog 用include包含起来(可以用extra/*.conf 包含所有文件)
+    include extra/bbs.conf;
+    include extra/blog.conf;
+}
+
+创建 extra 目录
+[root@lnmp02 conf]# mkdir extra
+
+查询 www，bbs,blog 所在的行
+[root@lnmp02 conf]# cat -n nginx.conf.ori.1 
+
+www:
+[root@lnmp02 conf]# sed -n '10,17p' nginx.conf.ori.1 
+    server {
+        listen       80;
+        server_name  www.yujiansong.org;
+        location / {
+            root   html/www;
+            index  index.html index.htm;
+        }
+    }
+bbs:	
+[root@lnmp02 conf]# sed -n '18,25p' nginx.conf.ori.1 
+    server {
+        listen       80;
+        server_name  bbs.yujiansong.org;
+        location / {
+            root   html/bbs;
+            index  index.html index.htm;
+        }
+    }
+blog:	
+[root@lnmp02 conf]# sed -n '26,33p' nginx.conf.ori.1 
+    server {
+        listen       80;
+        server_name  blog.yujiansong.org;
+        location / {
+            root   html/blog;
+            index  index.html index.htm;
+        }
+    }
+	
+再分别把内容写到对应的文件里：
+
+[root@lnmp02 conf]# sed -n '10,17p' nginx.conf.ori.1 > extra/www.conf
+[root@lnmp02 conf]# sed -n '18,25p' nginx.conf.ori.1 > extra/bbs.conf
+[root@lnmp02 conf]# sed -n '26,33p' nginx.conf.ori.1 > extra/blog.conf
+
+之后再查看一下：
+[root@lnmp02 conf]# cat extra/www.conf extra/bbs.conf extra/blog.conf 
+    server {
+        listen       80;
+        server_name  www.yujiansong.org;
+        location / {
+            root   html/www;
+            index  index.html index.htm;
+        }
+    }
+    server {
+        listen       80;
+        server_name  bbs.yujiansong.org;
+        location / {
+            root   html/bbs;
+            index  index.html index.htm;
+        }
+    }
+    server {
+        listen       80;
+        server_name  blog.yujiansong.org;
+        location / {
+            root   html/blog;
+            index  index.html index.htm;
+        }
+    }
+	
+之后检查语法：
+[root@lnmp02 conf]# ../sbin/nginx -t
+nginx: the configuration file /application/nginx-1.6.3/conf/nginx.conf syntax is ok
+nginx: configuration file /application/nginx-1.6.3/conf/nginx.conf test is successful
+重启服务：
+[root@lnmp02 conf]# ../sbin/nginx -s reload
+
+之后在curl一下：
+ 1551  cat /etc/hosts
+ 1552  curl www.yujiansong.org
+ 1553  curl bbs.yujiansong.org
+ 1554  curl blog.yujiansong.org
+ 
+============================================
+Nginx虚拟主机别名的配置：
+[root@lnmp02 conf]# vim extra/www.conf 
+    server {
+        listen       80;
+        server_name  www.yujiansong.org yjs.org;   #在后面空格后加yjs.org
+        location / {
+            root   html/www;
+            index  index.html index.htm;
+        }
+    }
+	
+域名解析：
+[root@lnmp02 conf]# vim /etc/hosts
+127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4
+::1         localhost localhost.localdomain localhost6 localhost6.localdomain6
+192.168.150.130 bestjiansong
+192.168.150.134 www.yujiansong.org yjs.org  #在后面空格后加 yjs.org 
+192.168.150.134 bbs.yujiansong.org
+192.168.150.134 blog.yujiansong.org
+
+之后检查语法：
+[root@lnmp02 conf]# ../sbin/nginx -t
+nginx: the configuration file /application/nginx-1.6.3/conf/nginx.conf syntax is ok
+nginx: configuration file /application/nginx-1.6.3/conf/nginx.conf test is successful
+重启服务：
+[root@lnmp02 conf]# ../sbin/nginx -s reload
+
+在进行测试：
+[root@lnmp02 conf]# curl yjs.org
+
+[root@lnmp02 conf]# curl -I yjs.org
+HTTP/1.1 200 OK
+Server: nginx/1.6.3
+Date: Tue, 27 Dec 2016 03:07:35 GMT
+Content-Type: text/html
+Content-Length: 7909
+Last-Modified: Mon, 26 Dec 2016 08:32:18 GMT
+Connection: keep-alive
+ETag: "5860d592-1ee5"
+Accept-Ranges: bytes
+
+
+之后可以用windows客户端测试一下： 运行==》drivers==》etc==》hosts
+
+输入： 192.168.150.134 yjs.org
+
+在浏览器窗口输入 yjs.org 
+
+===================================================================
+Nginx状态信息功能实战：
+http_stub_status_module
+
+通过添加一个虚拟主机进行配置：
+[root@lnmp02 conf]# vim /application/nginx/conf/extra/status.conf
+#status
+
+server{
+        listen  80;
+        server_name     status.yujiansong.org;
+        location / {
+                stub_status on;
+                access_log  off;
+        }
+      }
+
+把 extra/status.conf 包含到 nginx.conf 里 
+[root@lnmp02 conf]# vim nginx.conf
+worker_processes  1;
+events {
+    worker_connections  1024;
+}
+http {
+    include       mime.types;
+    default_type  application/octet-stream;
+    sendfile        on;
+    keepalive_timeout  65;
+    #nginx vhosts config
+    include extra/www.conf;
+    include extra/bbs.conf;
+    include extra/blog.conf;
+    include extra/status.conf;  #把 extra/status.conf 包含到 nginx.conf 里 
+}
+
+检查语法并重启：
+[root@lnmp02 conf]# /application/nginx/sbin/nginx -t
+nginx: the configuration file /application/nginx-1.6.3/conf/nginx.conf syntax is ok
+nginx: configuration file /application/nginx-1.6.3/conf/nginx.conf test is successful
+
+[root@lnmp02 conf]# /application/nginx/sbin/nginx -s reload
+
+之后可以用windows客户端测试一下： 运行==》drivers==》etc==》hosts
+
+输入： 192.168.150.134 status.yujiansong.org
+
+可以 ping status.yujiansong.org
+
+在浏览器窗口输入 status.yujiansong.org 
+
+会出现以下内容：
+Active connections: 1 
+server accepts handled requests
+ 314 314 25998 
+Reading: 0 Writing: 1 Waiting: 0 
+
+
+====================================================================
+为Nginx增加错误日志配置(error_log)
+[root@lnmp02 conf]# vim nginx.conf
+worker_processes  1;
+error_log logs/error.log error; #添加错误日志配置
+events {
+    worker_connections  1024;
+}
+http {
+    include       mime.types;
+    default_type  application/octet-stream;
+    sendfile        on;
+    keepalive_timeout  65;
+    #nginx vhosts config
+    include extra/www.conf;
+    include extra/bbs.conf;
+    include extra/blog.conf;
+    include extra/status.conf;
+}
+
+检查语法并重启：
+[root@lnmp02 conf]# /application/nginx/sbin/nginx -t
+nginx: the configuration file /application/nginx-1.6.3/conf/nginx.conf syntax is ok
+nginx: configuration file /application/nginx-1.6.3/conf/nginx.conf test is successful
+
+[root@lnmp02 conf]# /application/nginx/sbin/nginx -s reload
+查看生成的错误日志：
+[root@lnmp02 conf]# ll ../logs/
+total 14988
+-rw-r--r-- 1 root root 6922687 Dec 27 11:07 access.log
+-rw-r--r-- 1 root root 8407904 Dec 27 11:38 error.log
+-rw-r--r-- 1 root root       6 Dec 26 13:46 nginx.pid
+
+1577  less ../logs/error.log 
+
+可以先清空日志再查看
+[root@lnmp02 conf]# > ../logs/error.log 
+
+[root@lnmp02 conf]# /application/nginx/sbin/nginx -s reload
+
+[root@lnmp02 conf]# cat ../logs/error.log 
+2016/12/27 11:42:23 [notice] 13334#0: signal process started
+
+================================================================
+Nginx访问日志介绍：
+
+log_format 用来定义记录日志的格式
+
+access_log 用来指定文件的路径及使用的何种日志格式记录日志
+
+log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
+                  '$status $body_bytes_sent "$http_referer" '
+                  '"$http_user_agent" "$http_x_forwarded_for"';
+
+
+把 log_format添加到 nginx.conf 里
+[root@lnmp02 conf]# vim nginx.conf
+worker_processes  1;
+error_log logs/error.log error;
+events {
+    worker_connections  1024;
+}
+http {
+    include       mime.types;
+    default_type  application/octet-stream;
+    sendfile        on;
+    keepalive_timeout  65;
+    log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
+                      '$status $body_bytes_sent "$http_referer" '
+                      '"$http_user_agent" "$http_x_forwarded_for"';
+    #nginx vhosts config
+    include extra/www.conf;
+    include extra/bbs.conf;
+    include extra/blog.conf;
+    include extra/status.conf;
+}
+
+===========================================================
+记录日志的access_log 参数说明：
+
+access_log off #这里的off，表示不记录访问日志
+
+默认配置： access_log logs/access_log combined;
+放置配置： http，server,location, if in location, limit_except
+
+[root@lnmp02 conf]# vim extra/www.conf 
+    server {
+        listen       80;
+        server_name  www.yujiansong.org yjs.org;
+        location / {
+            root   html/www;
+            index  index.html index.htm;
+        }
+        access_log logs/access_www.log main;  #日志
+    }
+
+检查语法并重启：
+[root@lnmp02 conf]# /application/nginx/sbin/nginx -t
+nginx: the configuration file /application/nginx-1.6.3/conf/nginx.conf syntax is ok
+nginx: configuration file /application/nginx-1.6.3/conf/nginx.conf test is successful
+
+[root@lnmp02 conf]# /application/nginx/sbin/nginx -s reload
+
+查看文件结尾动态，并在浏览器中输入 IP
+[root@lnmp02 conf]# tail -f ../logs/access_www.log 
+192.168.150.1 - - [27/Dec/2016:12:56:57 +0800] "GET / HTTP/1.1" 200 7909 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.79 Safari/537.36 Edge/14.14393" "-"
+192.168.150.1 - - [27/Dec/2016:12:56:57 +0800] "GET /nginx.png HTTP/1.1" 404 570 "http://192.168.150.134/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.79 Safari/537.36 Edge/14.14393" "-"
+192.168.150.1 - - [27/Dec/2016:12:56:57 +0800] "GET /favicon.ico HTTP/1.1" 404 570 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.79 Safari/537.36 Edge/14.14393" "-"
+
+[root@lnmp02 conf]# tail -1 ../logs/access_www.log 
+192.168.150.1 - - [27/Dec/2016:12:57:37 +0800] "GET /favicon.ico HTTP/1.1" 404 570 "-" "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.108 Safari/537.36 2345Explorer/8.1.0.14126" "-"
+
+可以做一个 jiansong.html 超链接：
+[root@lnmp02 conf]# cd ../html/www/
+[root@lnmp02 www]# ls
+index.html
+[root@lnmp02 www]# vim jiansong.html
+<a href="http://www.baidu.com">a test</a>
+
+在浏览器窗口输入 192.168.150.134/jiansong.html 
+
+[root@lnmp02 conf]# tail -2 ../logs/access_www.log 
+192.168.150.1 - - [27/Dec/2016:12:57:37 +0800] "GET /favicon.ico HTTP/1.1" 404 570 "-" "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.108 Safari/537.36 2345Explorer/8.1.0.14126" "-"
+192.168.150.1 - - [27/Dec/2016:13:09:51 +0800] "GET /jiansong.html HTTP/1.1" 200 42 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.79 Safari/537.36 Edge/14.14393" "-"
+
+=====================================
+访问日志轮询：
+[root@lnmp02 blog]# cd /server/scripts/
+
+[root@lnmp02 scripts]# ll /application/nginx/logs/
+total 6780
+-rw-r--r-- 1 root root 6922687 Dec 27  2016 access.log
+-rw-r--r-- 1 root root    3368 Dec 27  2016 access_www.log
+-rw-r--r-- 1 root root    2025 Dec 27  2016 error.log
+-rw-r--r-- 1 root root       6 Dec 26  2016 nginx.pid
+
+[root@lnmp02 scripts]# vim cut_nginx_log.sh 
+#!/bin/bash
+
+Dateformat=`date +%Y%m%d`
+Basedir="/application/nginx"
+Nginxlogdir="$Basedir/logs"
+Logname="access_www"
+[ -d $Nginxlogdir ] && cd $Nginxlogdir||exit 1
+[ -f ${Logname}.log ]||exit 1
+/bin/mv ${Logname}.log ${Dateformat}_${Logname}.log
+$Basedir/sbin/nginx -s reload
+
+[root@lnmp02 scripts]# sh cut_nginx_log.sh 
+
+[root@lnmp02 scripts]# ll /application/nginx/logs/
+total 6780
+-rw-r--r-- 1 root root    3368 Dec 27 13:17 20161227_access_www.log
+-rw-r--r-- 1 root root 6922687 Dec 27 11:07 access.log
+-rw-r--r-- 1 root root       0 Dec 27 13:37 access_www.log
+-rw-r--r-- 1 root root    2086 Dec 27 13:37 error.log
+-rw-r--r-- 1 root root       6 Dec 26 13:46 nginx.pid
+
+[root@lnmp02 scripts]# date -s "2015-12-28"       
+Mon Dec 28 00:00:00 CST 2015
+
+[root@lnmp02 scripts]# sh cut_nginx_log.sh   
+     
+[root@lnmp02 scripts]# ll /application/nginx/logs/
+total 6780
+-rw-r--r-- 1 root root       0 Dec 27  2016 20151227_access_www.log
+-rw-r--r-- 1 root root       0 Dec 27 00:00 20151228_access_www.log
+-rw-r--r-- 1 root root    3368 Dec 27  2016 20161227_access_www.log
+-rw-r--r-- 1 root root 6922687 Dec 27  2016 access.log
+-rw-r--r-- 1 root root       0 Dec 28 00:00 access_www.log
+-rw-r--r-- 1 root root    2208 Dec 28 00:00 error.log
+-rw-r--r-- 1 root root       6 Dec 26  2016 nginx.pid
+
+设置定时任务：
+[root@lnmp02 scripts]# crontab -e
+#############################
+00 00 * * * /bin/bash /server/scripts/cut_nginx_log.sh > /dev/null 2>&1
+
+=================================================
+Nginx Rewrite 301 跳转
+	
+[root@lnmp02 conf]# vim extra/www.conf 
+    server {
+        listen       80;
+        server_name   yjs.org;
+        rewrite ^/(.*) http://www.yujiansong.org/$1 permanent;
+    }
+
+    server {
+        listen       80;
+        server_name  www.yujiansong.org ;
+        location / {
+            root   html/www;
+            index  index.html index.htm;
+        }
+        access_log logs/access_www.log main;
+    }
+
+
+[root@lnmp02 conf]# /application/nginx/sbin/nginx -t
+nginx: the configuration file /application/nginx-1.6.3/conf/nginx.conf syntax is ok
+nginx: configuration file /application/nginx-1.6.3/conf/nginx.conf test is successful
+
+[root@lnmp02 conf]# /application/nginx/sbin/nginx -s reload
+
+[root@lnmp02 conf]# curl -I yjs.org
+HTTP/1.1 301 Moved Permanently
+Server: nginx/1.6.3
+Date: Tue, 27 Dec 2016 07:25:41 GMT
+Content-Type: text/html
+Content-Length: 184
+Connection: keep-alive
+Location: http://www.yujiansong.org/
+
+=========================================
+实现访问 http://blog.yujiansong.org 跳转到 http://www.yujiansong.org/blog/jiansong.html 
+
+[root@lnmp02 conf]# vi extra/blog.conf 
+    server {
+        listen       80;
+        server_name  blog.yujiansong.org;
+        location / {
+            root   html/blog;
+            index  index.html index.htm;
+        }
+        rewrite ^/(.*) http://www.yujiansong.org/blog/jiansong.html break;
+    }
+	
+[root@lnmp02 conf]# mkdir ../html/www/blog -p
+[root@lnmp02 conf]# echo yujiansong > ../html/www/blog/jiansong.html
+
+[root@lnmp02 conf]# /application/nginx/sbin/nginx -t
+nginx: the configuration file /application/nginx-1.6.3/conf/nginx.conf syntax is ok
+nginx: configuration file /application/nginx-1.6.3/conf/nginx.conf test is successful
+[root@lnmp02 conf]# /application/nginx/sbin/nginx -s reload
+
+=======================================================================================
+
+
+
+
+
+
+
+
+
+
+
