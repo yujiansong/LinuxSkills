@@ -1,0 +1,81 @@
+shell
+++++++++++++++++++++++++++++++++++++++++++++++++
+例子 2-1. cleanup: 一个清空/var/log目录下的日志文件的脚本
+
+   1 # Cleanup
+   2 # 必须以root用户运行.
+   3 
+   4 cd /var/log
+   5 cat /dev/null > messages
+   6 cat /dev/null > wtmp
+   7 echo "Logs cleaned up."
+   
+========================================
+第三章：特殊字符
+
+在脚本或其他别的地方出现的特殊字符
+
+#
+
+注释. 以一个#开头的行 (#!是例外) 是注释行.
+
+1 # 这是一行注释.
+
+注释也可以出现在一个命令语句的后面。
+
+1 echo "A comment will follow." # 这里可以添加注释.
+2 #                            ^ 注意在#前面可以有空白符 #
+
+注释行前面也可以有空白字符.
+
+1 	#注意这个注释行的开头是一个TAB键.
+
+在echo命令给出的一个转义的#字符并不会开始一个注释。
+同样地，出现在一些参数代换结构和在数值常量表达式中的#字符也同样不会开始一个注释。
+[root@lnmp02 log]# echo "The # here does not begin a comment."
+The # here does not begin a comment.
+
+[root@lnmp02 log]# echo 'The # here does not begin a comment.'
+The # here does not begin a comment.
+
+[root@lnmp02 log]# echo The \# here does not begin a comment.
+The # here does not begin a comment.
+
+[root@lnmp02 log]# echo The # here does not begin a comment.
+The
+
+echo ${PATH#*:}       # 前面的#是参数代换，不是注释.
+
+[root@lnmp02 log]# echo $((2#1011))  #二进制转换
+11
+
+标准的引用和转义 符（"'\）可以转义#。
+
+==============
+命令分割符[分号]. 分割符允许在同一行里有两个或更多的命令.
+[root@lnmp02 log]# echo hello; echo there
+hello
+there
+
+   4 if [ -x "$filename" ]; then    # 注意："if" and "then"需要分隔符
+   5                                # 思考一下这是为什么?
+   6   echo "File $filename exists."; cp $filename $filename.bak
+   7 else
+   8   echo "File $filename not found."; touch $filename
+   9 fi; echo "File test complete."
+
+注意”;”有时需要转义.
+
+case语句分支的结束符[双分号].
+
+   1 case "$variable" in
+   2 abc)  echo "\$variable = abc" ;;
+   3 xyz)  echo "\$variable = xyz" ;;
+   4 esac
+   
+"点"命令[圆点]. 等同于source (参考例子 11-20).这是一个bash的内建命令.
+
+
+
+
+
